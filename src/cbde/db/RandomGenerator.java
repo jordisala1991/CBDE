@@ -1,6 +1,7 @@
 package cbde.db;
 
 import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public class RandomGenerator {
 	
@@ -32,13 +33,13 @@ public class RandomGenerator {
 	}
 	
 	public String randomString(int numChars) {
-		return String.valueOf(randomInt(numChars));
+		return RandomStringUtils.randomAlphanumeric(numChars);
 	}
 	
 	public String randomDate() {
 		int dia = randomInt(1, 28);
 		int mes = randomInt(1, 12);
 		int any = randomInt(1800, 2013);
-		return dia+"/"+mes+"/"+any;
+		return dia + "/" + mes + "/" + any;
 	}
 }
