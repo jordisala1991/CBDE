@@ -16,30 +16,40 @@ public class MongoScript {
 	
 	private static final String NORMALIZED_COLLECTION = "norm_collection";
 	private static final String TABLE = "table";
-	private static final int LINE_ITEM_NUM_INSERTS = 20000;
+	private static final String INSERTED_ATTR = "inserted";
+	private static final String REGION_TABLE = "region";
+	private static final String NATION_TABLE = "nation";
+	private static final String SUPPLIER_TABLE = "supplier";
+	private static final String CUSTOMER_TABLE = "customer";
+	private static final String LINE_ITEM_TABLE = "lineitem";
 	private static final int REGION_NUM_INSERTS = 5;
 	private static final int NATION_NUM_INSERTS = 25;
+	private static final int SUPPLIER_NUM_INSERTS = 33;
+	private static final int CUSTOMER_NUM_INSERTS = 500;
+	private static final int LINE_ITEM_NUM_INSERTS = 20000;
 
 	public MongoScript() throws UnknownHostException {
 		
 		mongo = new Mongo("localhost");
 		db = mongo.getDB("cbde");
 		randomGenerator = new RandomGenerator();
+		normalizedCollection = db.getCollectionFromString(NORMALIZED_COLLECTION);
 	}
 	
-	public void deleteNormalizedCollection() {
+	public void deleteCollection() {
 		
 		normalizedCollection.drop();
 	}
 	
-	public void randomNormalizedInserts() {
+	public void randomInserts() {
 		
-		normalizedCollection = db.getCollectionFromString(NORMALIZED_COLLECTION);
 		regionInserts();
 		nationInserts();
-		//lineItemInserts();
+		supplierInserts();
+		customerInserts();
+		lineItemInserts();
 	}
-	
+
 	private DBObject findOneBy(BasicDBObject query) {
 		
 		DBObject document = normalizedCollection.findOne(query);
@@ -51,73 +61,136 @@ public class MongoScript {
 	private int insertedRowsNumber(String tableName) {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, tableName);
-		BasicDBObject params = new BasicDBObject("inserted", true);
+		BasicDBObject params = new BasicDBObject(INSERTED_ATTR, true);
 		DBObject document = normalizedCollection.findOne(query, params);
 		
 		if (document != null) {
-			return (Integer) document.get("inserted");
+			return (Integer) document.get(INSERTED_ATTR);
 		}
 		return 0;
 	}
 	
-	private void nationInserts() {
-		
-		BasicDBObject query = new BasicDBObject(TABLE, "nation");
+	private void customerInserts() {
+	
+		BasicDBObject query = new BasicDBObject(TABLE, CUSTOMER_TABLE);
 		DBObject document = findOneBy(query);
+		int insertedRows = insertedRowsNumber(CUSTOMER_TABLE);
+		int nationsInserted = insertedRowsNumber(NATION_TABLE);
 		
-		int regionsInserted = insertedRowsNumber("region");
-		
-		for(int index = 1; index <= NATION_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), nationItem(index, regionsInserted));
+		for(int index = insertedRows + 1; index <= insertedRows + CUSTOMER_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), customer(index, nationsInserted));
 		}
+		
+		document.put(INSERTED_ATTR, insertedRows + CUSTOMER_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
-	private DBObject nationItem(int index, int regionsInserted) {
+	private DBObject customer(int index, int nationsInserted) {
 		
-		BasicDBObject nationItem = new BasicDBObject();
-		nationItem.append("n_nk", index);
-		nationItem.append("n_n", randomGenerator.randomString(32));
-		nationItem.append("n_rk", randomGenerator.randomInt(1, regionsInserted));
-		nationItem.append("n_c", randomGenerator.randomString(80));
+		BasicDBObject customer = new BasicDBObject();
+		customer.append("c_ck", index);
+		customer.append("c_n", randomGenerator.randomString(32));
+		customer.append("c_ad", randomGenerator.randomString(32));
+		customer.append("c_nk", randomGenerator.randomInt(1, nationsInserted));
+		customer.append("c_p", randomGenerator.randomString(32));
+		customer.append("c_ac", randomGenerator.randomInt(7));
+		customer.append("c_m", randomGenerator.randomString(32));
+		customer.append("c_c", randomGenerator.randomString(60));
 		
-		return nationItem;
+		return customer;
+	}
+
+	private void supplierInserts() {
+		
+		BasicDBObject query = new BasicDBObject(TABLE, SUPPLIER_TABLE);
+		DBObject document = findOneBy(query);
+		int insertedRows = insertedRowsNumber(SUPPLIER_TABLE);
+		int nationsInserted = insertedRowsNumber(NATION_TABLE);
+		
+		for(int index = insertedRows + 1; index <= insertedRows + SUPPLIER_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), supplier(index, nationsInserted));
+		}
+		
+		document.put(INSERTED_ATTR, insertedRows + SUPPLIER_NUM_INSERTS);
+		normalizedCollection.save(document);
+	}
+
+	
+	private DBObject supplier(int index, int nationsInserted) {
+		
+		BasicDBObject supplier = new BasicDBObject();
+		supplier.append("s_sk", index);
+		supplier.append("s_n", randomGenerator.randomString(32));
+		supplier.append("s_ad", randomGenerator.randomString(32));
+		supplier.append("s_nk", randomGenerator.randomInt(1, nationsInserted));
+		supplier.append("s_p", randomGenerator.randomString(9));
+		supplier.append("s_ac", randomGenerator.randomInt(7));
+		supplier.append("s_c", randomGenerator.randomString(53));
+		
+		return supplier;
+	}
+
+	private void nationInserts() {
+		
+		BasicDBObject query = new BasicDBObject(TABLE, NATION_TABLE);
+		DBObject document = findOneBy(query);
+		
+		int regionsInserted = insertedRowsNumber(REGION_TABLE);
+		
+		for(int index = 1; index <= NATION_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), nation(index, regionsInserted));
+		}
+		
+		document.put(INSERTED_ATTR, NATION_NUM_INSERTS);
+		normalizedCollection.save(document);
+	}
+	
+	private DBObject nation(int index, int regionsInserted) {
+		
+		BasicDBObject nation = new BasicDBObject();
+		nation.append("n_nk", index);
+		nation.append("n_n", randomGenerator.randomString(32));
+		nation.append("n_rk", randomGenerator.randomInt(1, regionsInserted));
+		nation.append("n_c", randomGenerator.randomString(80));
+		
+		return nation;
 	}
 
 	private void regionInserts() {
 		
-		BasicDBObject query = new BasicDBObject(TABLE, "region");
+		BasicDBObject query = new BasicDBObject(TABLE, REGION_TABLE);
 		DBObject document = findOneBy(query);
 		
 		for(int index = 1; index <= REGION_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), regionItem(index));
+			document.put(String.valueOf(index), region(index));
 		}
+		
+		document.put(INSERTED_ATTR, REGION_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
-	private DBObject regionItem(int index) {
+	private DBObject region(int index) {
 		
-		BasicDBObject lineItem = new BasicDBObject();
-		lineItem.append("r_rk", index);
-		lineItem.append("r_n", randomGenerator.randomString(32));
-		lineItem.append("r_c", randomGenerator.randomString(80));
+		BasicDBObject region = new BasicDBObject();
+		region.append("r_rk", index);
+		region.append("r_n", randomGenerator.randomString(32));
+		region.append("r_c", randomGenerator.randomString(80));
 		
-		return lineItem;
+		return region;
 	}
 	
 	private void lineItemInserts() {
 		
-		BasicDBObject query = new BasicDBObject(TABLE, "lineitem");
+		BasicDBObject query = new BasicDBObject(TABLE, LINE_ITEM_TABLE);
 		DBObject document = findOneBy(query);
-		int insertedRows = insertedRowsNumber("lineitem");
+		int insertedRows = insertedRowsNumber(LINE_ITEM_TABLE);
 		
 		for(int i = insertedRows + 1; i <= insertedRows + LINE_ITEM_NUM_INSERTS; i++) {
 			document.put(String.valueOf(i), lineItem());	
 		}
 		
-		document.put("inserted", insertedRows + LINE_ITEM_NUM_INSERTS);
-		
-		//collection.save(document);
+		document.put(INSERTED_ATTR, insertedRows + LINE_ITEM_NUM_INSERTS);
+		normalizedCollection.save(document);
 	}
 
 	private DBObject lineItem() {
