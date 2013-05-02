@@ -8,7 +8,7 @@ public class Main {
  	
  		MongoScript mongoScript = new MongoScript();
  		
- 		mongoScript.randomInserts();
+ 		mongoScript.randomNormalizedInserts();
 	}
 
 }

@@ -22,7 +22,7 @@ public class RandomGenerator {
         return result;
 	}
 	
-	private int randomInt(int min, int max) {
+	public int randomInt(int min, int max) {
 		return random.nextInt(max - min)+min;
 	}
 	

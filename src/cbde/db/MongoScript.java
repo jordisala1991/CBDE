@@ -27,7 +27,12 @@ public class MongoScript {
 		randomGenerator = new RandomGenerator();
 	}
 	
-	public void randomInserts() {
+	public void deleteNormalizedCollection() {
+		
+		normalizedCollection.drop();
+	}
+	
+	public void randomNormalizedInserts() {
 		
 		normalizedCollection = db.getCollectionFromString(NORMALIZED_COLLECTION);
 		regionInserts();
@@ -43,12 +48,16 @@ public class MongoScript {
 		return document;
 	}
 	
-	private int insertedRowsNumber(DBObject document) {
+	private int insertedRowsNumber(String tableName) {
 		
-		Object rows = document.get("inserted");
-		if (rows == null) rows = 0;
+		BasicDBObject query = new BasicDBObject(TABLE, tableName);
+		BasicDBObject params = new BasicDBObject("inserted", true);
+		DBObject document = normalizedCollection.findOne(query, params);
 		
-		return (Integer) rows;
+		if (document != null) {
+			return (Integer) document.get("inserted");
+		}
+		return 0;
 	}
 	
 	private void nationInserts() {
@@ -56,26 +65,23 @@ public class MongoScript {
 		BasicDBObject query = new BasicDBObject(TABLE, "nation");
 		DBObject document = findOneBy(query);
 		
-		BasicDBObject query2 = new BasicDBObject(TABLE, "lol");
-		BasicDBObject params = new BasicDBObject("inserted", true);
-		DBObject culo = normalizedCollection.findOne(query2, params);
-		System.out.println(culo.get("inserted"));
+		int regionsInserted = insertedRowsNumber("region");
 		
-		//for(int index = 1; index < NATION_NUM_INSERTS; index++) {
-		//	document.put(String.valueOf(index), nationItem(index));
-		//}
-		//System.out.println(document);
+		for(int index = 1; index <= NATION_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), nationItem(index, regionsInserted));
+		}
+		normalizedCollection.save(document);
 	}
 	
-	private DBObject nationItem(int index) {
+	private DBObject nationItem(int index, int regionsInserted) {
 		
-		BasicDBObject lineItem = new BasicDBObject();
-		lineItem.append("n_nk", index);
-		lineItem.append("n_n", randomGenerator.randomString(32));
-		lineItem.append("n_rk", 1);
-		lineItem.append("n_c", randomGenerator.randomString(80));
+		BasicDBObject nationItem = new BasicDBObject();
+		nationItem.append("n_nk", index);
+		nationItem.append("n_n", randomGenerator.randomString(32));
+		nationItem.append("n_rk", randomGenerator.randomInt(1, regionsInserted));
+		nationItem.append("n_c", randomGenerator.randomString(80));
 		
-		return lineItem;
+		return nationItem;
 	}
 
 	private void regionInserts() {
@@ -83,10 +89,9 @@ public class MongoScript {
 		BasicDBObject query = new BasicDBObject(TABLE, "region");
 		DBObject document = findOneBy(query);
 		
-		for(int index = 1; index < REGION_NUM_INSERTS; index++) {
+		for(int index = 1; index <= REGION_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), regionItem(index));
 		}
-		document.put("inserted", REGION_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
@@ -104,16 +109,15 @@ public class MongoScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, "lineitem");
 		DBObject document = findOneBy(query);
-		int insertedRows = insertedRowsNumber(document);
+		int insertedRows = insertedRowsNumber("lineitem");
 		
 		for(int i = insertedRows + 1; i <= insertedRows + LINE_ITEM_NUM_INSERTS; i++) {
 			document.put(String.valueOf(i), lineItem());	
 		}
 		
 		document.put("inserted", insertedRows + LINE_ITEM_NUM_INSERTS);
-		System.out.println(document);
-		//collection.save(document);
 		
+		//collection.save(document);
 	}
 
 	private DBObject lineItem() {
