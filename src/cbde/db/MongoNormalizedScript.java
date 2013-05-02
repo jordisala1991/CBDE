@@ -7,7 +7,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 
-public class MongoScript {
+public class MongoNormalizedScript {
 	
 	private Mongo mongo;
 	private DB db;
@@ -21,14 +21,16 @@ public class MongoScript {
 	private static final String NATION_TABLE = "nation";
 	private static final String SUPPLIER_TABLE = "supplier";
 	private static final String CUSTOMER_TABLE = "customer";
+	private static final String PART_TABLE = "part";
 	private static final String LINE_ITEM_TABLE = "lineitem";
 	private static final int REGION_NUM_INSERTS = 5;
 	private static final int NATION_NUM_INSERTS = 25;
 	private static final int SUPPLIER_NUM_INSERTS = 33;
 	private static final int CUSTOMER_NUM_INSERTS = 500;
+	private static final int PART_NUM_INSERTS = 666;
 	private static final int LINE_ITEM_NUM_INSERTS = 20000;
 
-	public MongoScript() throws UnknownHostException {
+	public MongoNormalizedScript() throws UnknownHostException {
 		
 		mongo = new Mongo("localhost");
 		db = mongo.getDB("cbde");
@@ -47,6 +49,7 @@ public class MongoScript {
 		nationInserts();
 		supplierInserts();
 		customerInserts();
+		partInserts();
 		lineItemInserts();
 	}
 
@@ -70,6 +73,36 @@ public class MongoScript {
 		return 0;
 	}
 	
+	private void partInserts() {
+		
+		BasicDBObject query = new BasicDBObject(TABLE, PART_TABLE);
+		DBObject document = findOneBy(query);
+		int insertedRows = insertedRowsNumber(PART_TABLE);
+		
+		for(int index = insertedRows + 1; index <= insertedRows + PART_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), part(index));
+		}
+		
+		document.put(INSERTED_ATTR, insertedRows + PART_NUM_INSERTS);
+		normalizedCollection.save(document);
+	}
+	
+	private DBObject part(int index) {
+		
+		BasicDBObject part = new BasicDBObject();
+		part.append("p_pk", index);
+		part.append("p_n", randomGenerator.randomString(32));
+		part.append("p_mf", randomGenerator.randomString(32));
+		part.append("p_b", randomGenerator.randomString(32));
+		part.append("p_t", randomGenerator.randomString(32));
+		part.append("p_s", randomGenerator.randomInt(4));
+		part.append("p_con", randomGenerator.randomString(32));
+		part.append("p_r", randomGenerator.randomInt(7));
+		part.append("p_com", randomGenerator.randomString(32));
+		
+		return part;
+	}
+
 	private void customerInserts() {
 	
 		BasicDBObject query = new BasicDBObject(TABLE, CUSTOMER_TABLE);
