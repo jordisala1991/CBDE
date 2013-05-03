@@ -1,6 +1,7 @@
 package cbde.db;
 
 import java.net.UnknownHostException;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -17,6 +18,7 @@ public class MongoNormalizedScript {
 	private static final String NORMALIZED_COLLECTION = "norm_collection";
 	private static final String TABLE = "table";
 	private static final String INSERTED_ATTR = "inserted";
+	private static final String ROWS_ATTR = "rows";
 	private static final String REGION_TABLE = "region";
 	private static final String NATION_TABLE = "nation";
 	private static final String SUPPLIER_TABLE = "supplier";
@@ -63,7 +65,11 @@ public class MongoNormalizedScript {
 		
 		DBObject document = normalizedCollection.findOne(query);
 		
-		if (document == null) document = query;
+		if (document == null) {
+			document = query;
+			document.put(INSERTED_ATTR, 0);
+			document.put(ROWS_ATTR, new BasicDBList());
+		}
 		return document;
 	}
 	
@@ -79,15 +85,24 @@ public class MongoNormalizedScript {
 		return 0;
 	}
 	
+	private BasicDBList getListOfProjectedRows(String tableName, DBObject projection) {
+		
+		BasicDBObject query = new BasicDBObject(TABLE, tableName);
+		DBObject result = normalizedCollection.findOne(query, projection);
+		
+		return (BasicDBList) result.get("rows");
+	}
+	
 	private void partInserts() {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, PART_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
 		int insertedRows = insertedRowsNumber(PART_TABLE);
 
 		document.put(INSERTED_ATTR, insertedRows + PART_NUM_INSERTS);
-		for(int index = insertedRows + 1; index <= insertedRows + PART_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), part(index));
+		for(int index = 1; index <= PART_NUM_INSERTS; index++) {
+			rows.add(part(insertedRows + index));
 		}
 		
 		normalizedCollection.save(document);
@@ -113,12 +128,13 @@ public class MongoNormalizedScript {
 	
 		BasicDBObject query = new BasicDBObject(TABLE, CUSTOMER_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
 		int insertedRows = insertedRowsNumber(CUSTOMER_TABLE);
 		int nationsInserted = insertedRowsNumber(NATION_TABLE);
 
 		document.put(INSERTED_ATTR, insertedRows + CUSTOMER_NUM_INSERTS);
-		for(int index = insertedRows + 1; index <= insertedRows + CUSTOMER_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), customer(index, nationsInserted));
+		for(int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
+			rows.add(customer(insertedRows + index, nationsInserted));
 		}
 		
 		normalizedCollection.save(document);
@@ -143,12 +159,13 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, SUPPLIER_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
 		int insertedRows = insertedRowsNumber(SUPPLIER_TABLE);
 		int nationsInserted = insertedRowsNumber(NATION_TABLE);
 
 		document.put(INSERTED_ATTR, insertedRows + SUPPLIER_NUM_INSERTS);
-		for(int index = insertedRows + 1; index <= insertedRows + SUPPLIER_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), supplier(index, nationsInserted));
+		for(int index = 1; index <= SUPPLIER_NUM_INSERTS; index++) {
+			rows.add(supplier(insertedRows + index, nationsInserted));
 		}
 		
 		normalizedCollection.save(document);
@@ -173,11 +190,13 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, NATION_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
+		rows.clear();
 		int regionsInserted = insertedRowsNumber(REGION_TABLE);
 
 		document.put(INSERTED_ATTR, NATION_NUM_INSERTS);
 		for(int index = 1; index <= NATION_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), nation(index, regionsInserted));
+			rows.add(nation(index, regionsInserted));
 		}
 		
 		normalizedCollection.save(document);
@@ -198,10 +217,12 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, REGION_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
+		rows.clear();
 
 		document.put(INSERTED_ATTR, REGION_NUM_INSERTS);
 		for(int index = 1; index <= REGION_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), region(index));
+			rows.add(region(index));
 		}
 		
 		normalizedCollection.save(document);
@@ -221,12 +242,13 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, ORDERS_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
 		int insertedRows = insertedRowsNumber(ORDERS_TABLE);
 		int customersInserted = insertedRowsNumber(CUSTOMER_TABLE);
 
 		document.put(INSERTED_ATTR, insertedRows + ORDERS_NUM_INSERTS);
-		for(int index = insertedRows + 1; index <= insertedRows + ORDERS_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), orders(index, customersInserted));
+		for(int index = 1; index <= ORDERS_NUM_INSERTS; index++) {
+			rows.add(orders(insertedRows + index, customersInserted));
 		}
 		
 		normalizedCollection.save(document);
@@ -251,14 +273,15 @@ public class MongoNormalizedScript {
 	private void partSuppInserts() {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, PART_SUPP_TABLE);
-		DBObject document = findOneBy(query);		
+		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
 		int insertedRows = insertedRowsNumber(PART_SUPP_TABLE);
 		int partsInserted = insertedRowsNumber(PART_TABLE);
 		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
 
 		document.put(INSERTED_ATTR, insertedRows + PART_SUPP_NUM_INSERTS);		
-		for(int index = insertedRows + 1; index <= insertedRows + PART_SUPP_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), partSupp(partsInserted, suppliersInserted));
+		for(int index = 1; index <= PART_SUPP_NUM_INSERTS; index++) {
+			rows.add(partSupp(partsInserted, suppliersInserted));
 		}
 
 		normalizedCollection.save(document);
@@ -266,7 +289,6 @@ public class MongoNormalizedScript {
 	
 	private DBObject partSupp(int partsInserted, int suppliersInserted) {
 		
-		//TODO: do the primary key generation
 		BasicDBObject partSupp = new BasicDBObject();
 		partSupp.append("ps_pk", randomGenerator.randomInt(1, partsInserted));
 		partSupp.append("ps_sk", randomGenerator.randomInt(1, suppliersInserted));
@@ -281,25 +303,30 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, LINE_ITEM_TABLE);
 		DBObject document = findOneBy(query);
+		BasicDBList rows = (BasicDBList) document.get(ROWS_ATTR);
 		int insertedRows = insertedRowsNumber(LINE_ITEM_TABLE);
 		int ordersInserted = insertedRowsNumber(ORDERS_TABLE);
-		int partsInserted = insertedRowsNumber(PART_TABLE);
-		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
+		
+		BasicDBObject pk_partsup = new BasicDBObject();
+		pk_partsup.append("rows.ps_pk", true);
+		pk_partsup.append("rows.ps_sk", true);
+		BasicDBList partSuppRows = getListOfProjectedRows(PART_SUPP_TABLE, pk_partsup);
 		
 		document.put(INSERTED_ATTR, insertedRows + LINE_ITEM_NUM_INSERTS);
-		for(int index = insertedRows + 1; index <= insertedRows + LINE_ITEM_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), lineItem(ordersInserted, partsInserted, suppliersInserted));	
+		for(int index = 1; index <= LINE_ITEM_NUM_INSERTS; index++) {
+			DBObject partSupp = (DBObject) randomGenerator.getRandomItem(partSuppRows);
+			rows.add(lineItem(ordersInserted, partSupp));
 		}
 		
 		normalizedCollection.save(document);
 	}
 
-	private DBObject lineItem(int ordersInserted, int partsInserted, int suppliersInserted) {
+	private DBObject lineItem(int ordersInserted, DBObject partSupp) {
 		
 		BasicDBObject lineItem = new BasicDBObject();
 		lineItem.append("l_ok", randomGenerator.randomInt(1, ordersInserted));
-		lineItem.append("l_pk", randomGenerator.randomInt(1, partsInserted));
-		lineItem.append("l_sk", randomGenerator.randomInt(1, suppliersInserted));
+		lineItem.append("l_pk", partSupp.get("ps_pk"));
+		lineItem.append("l_sk", partSupp.get("ps_sk"));
 		lineItem.append("l_ln", randomGenerator.randomInt(4));
 		lineItem.append("l_q", randomGenerator.randomInt(4));
 		lineItem.append("l_ep", randomGenerator.randomInt(7));

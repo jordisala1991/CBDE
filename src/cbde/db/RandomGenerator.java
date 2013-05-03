@@ -1,5 +1,6 @@
 package cbde.db;
 
+import java.util.List;
 import java.util.Random;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -41,5 +42,10 @@ public class RandomGenerator {
 		int mes = randomInt(1, 12);
 		int any = randomInt(1800, 2013);
 		return dia + "/" + mes + "/" + any;
+	}
+
+	public Object getRandomItem(List<?> partSupp) {
+		
+		return partSupp.get(random.nextInt(partSupp.size()));
 	}
 }
