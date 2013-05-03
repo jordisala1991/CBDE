@@ -6,9 +6,10 @@ public class Main {
 
  	public static void main(String[] args) throws UnknownHostException {
  	
- 		MongoNormalizedScript mongoScript = new MongoNormalizedScript();
+ 		/*MongoNormalizedScript mongoScript = new MongoNormalizedScript();
  		mongoScript.deleteCollection();
- 		mongoScript.randomInserts();
+ 		mongoScript.randomInserts();*/
+ 		OracleFirstScript ofc = new OracleFirstScript();
 	}
 
 }
