@@ -7,9 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-
 public class OracleFirstScript {
 	
 	private Connection connection;
@@ -36,6 +33,7 @@ public class OracleFirstScript {
 	public void randomInserts() throws SQLException {
 		
 		regionInserts();
+		nationInserts();
 	}
 	
 	private int insertedRowsNumber(String tableName) {
@@ -55,7 +53,7 @@ public class OracleFirstScript {
 	    return res;
 	}	
 	
-	public void regionInserts() throws SQLException {
+	private void regionInserts() throws SQLException {
 		
 		if (insertedRowsNumber("region") == 0) { 
 			String regionInsert = "INSERT INTO region" + "(R_RegionKey, R_Name, R_Comment) VALUES" + "(?, ?, ?)";
@@ -70,19 +68,19 @@ public class OracleFirstScript {
 		}
 	}
 	
-	public void nationInserts() throws SQLException {
+	private void nationInserts() throws SQLException {
 		
 		if (insertedRowsNumber("nation") == 0) { 		
-			String nationInsert = "INSERT INTO nation" + "(N_NationKey, N_Name, N_RegionKey, N_Comment) VALUES" + "(?, ?, ?)";
+			String nationInsert = "INSERT INTO nation" + "(N_NationKey, N_Name, N_RegionKey, N_Comment) VALUES" + "(?, ?, ?, ?)";
 			int regionsInserted = insertedRowsNumber("region");
 			
-			for (int index = 1; index <= REGION_NUM_INSERTS; index++) {
+			for (int index = 1; index <= NATION_NUM_INSERTS; index++) {
 				PreparedStatement preparedStatement = connection.prepareStatement(nationInsert);
 				preparedStatement.setInt(1, index);
 				preparedStatement.setString(2, randomGenerator.randomString(32));
-				preparedStatement.setInt(3, regionsInserted);
+				preparedStatement.setInt(3, randomGenerator.randomInt(1, regionsInserted));
 				preparedStatement.setString(4, randomGenerator.randomString(80));
-				preparedStatement .executeUpdate();
+				preparedStatement.executeUpdate();
 			}
 		}
 	}

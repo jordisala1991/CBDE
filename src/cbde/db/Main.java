@@ -8,7 +8,7 @@ import com.esotericsoftware.yamlbeans.YamlReader;
 
 public class Main {
 
- 	private static final String PARAMETERS_FILENAME = "paramters.yml";
+ 	private static final String PARAMETERS_FILENAME = "parameters.yml";
 
 	public static void main(String[] args) throws Exception {
  	
