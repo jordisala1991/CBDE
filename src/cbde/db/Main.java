@@ -11,6 +11,7 @@ public class Main {
  		mongoScript.deleteCollection();
  		mongoScript.randomInserts();*/
  		OracleFirstScript ofc = new OracleFirstScript();
+ 		ofc.randomInserts();
 	}
 
 }
