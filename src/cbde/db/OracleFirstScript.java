@@ -34,6 +34,12 @@ public class OracleFirstScript {
 		
 		regionInserts();
 		nationInserts();
+		supplierInserts();
+		customerInserts();
+		partInserts();
+		ordersInserts();
+		partSuppInserts();
+		lineItemInserts();
 	}
 	
 	private int insertedRowsNumber(String tableName) {
@@ -63,7 +69,7 @@ public class OracleFirstScript {
 				preparedStatement.setInt(1, index);
 				preparedStatement.setString(2, randomGenerator.randomString(32));
 				preparedStatement.setString(3, randomGenerator.randomString(80));
-				preparedStatement .executeUpdate();
+				preparedStatement.executeUpdate();
 			}
 		}
 	}
@@ -82,6 +88,45 @@ public class OracleFirstScript {
 				preparedStatement.setString(4, randomGenerator.randomString(80));
 				preparedStatement.executeUpdate();
 			}
+		}
+	}
+	
+	private void supplierInserts() throws SQLException {
+		
+		String supplierInsert = "INSERT INTO supplier" + "(S_SuppKey, S_Name, S_Address, S_NationKey, S_Phone, S_AcctBal, S_Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?)";
+		int nationsInserted = insertedRowsNumber("nation");
+		int insertedRows = insertedRowsNumber("supplier");
+		
+		for (int index = 1; index <= SUPPLIER_NUM_INSERTS; index++) {
+			PreparedStatement preparedStatement = connection.prepareStatement(supplierInsert);
+			preparedStatement.setInt(1, index + insertedRows);			
+			preparedStatement.setString(2, randomGenerator.randomString(32));
+			preparedStatement.setString(3, randomGenerator.randomString(32));
+			preparedStatement.setInt(4, randomGenerator.randomInt(1, nationsInserted));
+			preparedStatement.setString(5, randomGenerator.randomString(9));
+			preparedStatement.setInt(6, randomGenerator.randomInt(7));
+			preparedStatement.setString(7, randomGenerator.randomString(53));
+			preparedStatement.executeUpdate();
+		}
+	}
+	
+	private void customerInserts() throws SQLException {
+		
+		String customerInsert = "INSERT INTO customer" + "(C_CustKey, C_Name, C_Address, C_NationKey, C_Phone, C_AcctBal, C_MktSegment, C_Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?, ?)";
+		int nationsInserted = insertedRowsNumber("nation");
+		int insertedRows = insertedRowsNumber("customer");
+		
+		for (int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
+			PreparedStatement preparedStatement = connection.prepareStatement(customerInsert);
+			preparedStatement.setInt(1, index + insertedRows);			
+			preparedStatement.setString(2, randomGenerator.randomString(32));
+			preparedStatement.setString(3, randomGenerator.randomString(32));
+			preparedStatement.setInt(4, randomGenerator.randomInt(1, nationsInserted));
+			preparedStatement.setString(5, randomGenerator.randomString(32));
+			preparedStatement.setInt(6, randomGenerator.randomInt(7));
+			preparedStatement.setString(7, randomGenerator.randomString(32));
+			preparedStatement.setString(8, randomGenerator.randomString(60));
+			preparedStatement.executeUpdate();
 		}
 	}
 	
