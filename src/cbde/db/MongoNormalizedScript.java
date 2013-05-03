@@ -22,12 +22,16 @@ public class MongoNormalizedScript {
 	private static final String SUPPLIER_TABLE = "supplier";
 	private static final String CUSTOMER_TABLE = "customer";
 	private static final String PART_TABLE = "part";
+	private static final String ORDERS_TABLE = "orders";
+	private static final String PART_SUPP_TABLE = "partsupp";
 	private static final String LINE_ITEM_TABLE = "lineitem";
 	private static final int REGION_NUM_INSERTS = 5;
 	private static final int NATION_NUM_INSERTS = 25;
 	private static final int SUPPLIER_NUM_INSERTS = 33;
 	private static final int CUSTOMER_NUM_INSERTS = 500;
 	private static final int PART_NUM_INSERTS = 666;
+	private static final int ORDERS_NUM_INSERTS = 5000;
+	private static final int PART_SUPP_NUM_INSERTS = 2666;
 	private static final int LINE_ITEM_NUM_INSERTS = 20000;
 
 	public MongoNormalizedScript() throws UnknownHostException {
@@ -50,7 +54,9 @@ public class MongoNormalizedScript {
 		supplierInserts();
 		customerInserts();
 		partInserts();
-		lineItemInserts();
+		ordersInserts();
+		partSuppInserts();
+		//lineItemInserts();
 	}
 
 	private DBObject findOneBy(BasicDBObject query) {
@@ -212,39 +218,106 @@ public class MongoNormalizedScript {
 		return region;
 	}
 	
+	/////////////////////////////////////
+	// A partir d'aqui es la meva part //
+	/////////////////////////////////////
+	private void ordersInserts() {
+		
+		BasicDBObject query = new BasicDBObject(TABLE, ORDERS_TABLE);
+		DBObject document = findOneBy(query);
+		int insertedRows = insertedRowsNumber(ORDERS_TABLE);
+		int customersInserted = insertedRowsNumber(CUSTOMER_TABLE);
+		
+		for(int index = insertedRows + 1; index <= insertedRows + ORDERS_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), orders(index, customersInserted));
+		}
+		
+		document.put(INSERTED_ATTR, insertedRows + ORDERS_NUM_INSERTS);
+		normalizedCollection.save(document);
+	}
+	
+	private DBObject orders(int index, int customersInserted) {
+		
+		BasicDBObject order = new BasicDBObject();
+		order.append("o_ok", index);
+		order.append("o_ck", randomGenerator.randomInt(1, customersInserted));
+		order.append("o_os", randomGenerator.randomString(?));
+		order.append("o_tp", randomGenerator.randomInt(?));  // es decimal, ja esta bé?
+		order.append("o_od", randomGenerator.randomDate());
+		order.append("o_op", randomGenerator.randomString(?));
+		order.append("o_cl", randomGenerator.randomString(?));
+		order.append("o_sp", randomGenerator.randomInt(?));
+		order.append("o_co", randomGenerator.randomString(?));
+		
+		return order;
+	}
+	
+	private void partSuppInserts() {
+		
+		BasicDBObject query = new BasicDBObject(TABLE, PART_SUPP_TABLE);
+		DBObject document = findOneBy(query);		
+		int insertedRows = insertedRowsNumber(PART_SUPP_TABLE);
+		int partsInserted = insertedRowsNumber(PART_TABLE);
+		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
+		
+		for(int index = insertedRows + 1; index <= insertedRows + PART_SUPP_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), partSupp(partsInserted, suppliersInserted));
+		}
+
+		document.put(INSERTED_ATTR, insertedRows + PART_SUPP_NUM_INSERTS);
+		normalizedCollection.save(document);
+	}
+	
+	private DBObject partSupp(int partsInserted, int suppliersInserted) {
+		
+		// Aixo no esta be pq la primary key no es respecta
+		BasicDBObject partSupp = new BasicDBObject();
+		partSupp.append("ps_pk", randomGenerator.randomInt(1, partsInserted));
+		partSupp.append("ps_sk", randomGenerator.randomInt(1, suppliersInserted));
+		partSupp.append("ps_a", randomGenerator.randomInt(?));
+		partSupp.append("ps_sc", randomGenerator.randomInt(?));  // es decimal, ja esta be?
+		partSupp.append("ps_c", randomGenerator.randomString(?));
+		
+		return partSupp;
+	} 
+	
 	private void lineItemInserts() {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, LINE_ITEM_TABLE);
 		DBObject document = findOneBy(query);
 		int insertedRows = insertedRowsNumber(LINE_ITEM_TABLE);
+		int ordersInserted = insertedRowsNumber(ORDERS_TABLE);
+		int partsInserted = insertedRowsNumber(PART_TABLE);
+		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
 		
-		for(int i = insertedRows + 1; i <= insertedRows + LINE_ITEM_NUM_INSERTS; i++) {
-			document.put(String.valueOf(i), lineItem());	
+		for(int index = insertedRows + 1; index <= insertedRows + LINE_ITEM_NUM_INSERTS; index++) {
+			document.put(String.valueOf(index), lineItem(index, ordersInserted, partsInserted, suppliersInserted));	
 		}
 		
 		document.put(INSERTED_ATTR, insertedRows + LINE_ITEM_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 
-	private DBObject lineItem() {
+	private DBObject lineItem(int index, int ordersInserted, int partsInserted, int suppliersInserted) {
 		
+		// Aixo no tinc clar que sigui correcte
 		BasicDBObject lineItem = new BasicDBObject();
-		lineItem.append("orderkey", 2);
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
-		lineItem.append("orderkey", "21");
+		lineItem.append("l_ok", randomGenerator.randomInt(1, ordersInserted));
+		lineItem.append("l_pk", randomGenerator.randomInt(1, partsInserted));
+		lineItem.append("l_sk",randomGenerator.randomInt(1, suppliersInserted) );
+		lineItem.append("l_ln", index);
+		lineItem.append("l_q", randomGenerator.randomInt(?));
+		lineItem.append("l_ep", randomGenerator.randomInt(?));  // es decimal, ja esta be?
+		lineItem.append("l_d", randomGenerator.randomInt(?));  // es decimal, ja esta be?
+		lineItem.append("l_t", randomGenerator.randomInt(?));  // es decimal, ja esta be?
+		lineItem.append("l_rf", randomGenerator.randomString(?));
+		lineItem.append("l_ls", randomGenerator.randomString(?));
+		lineItem.append("l_sd", randomGenerator.randomDate());
+		lineItem.append("l_cd", randomGenerator.randomDate());
+		lineItem.append("l_rd", randomGenerator.randomDate());
+		lineItem.append("l_ss", randomGenerator.randomString(?));
+		lineItem.append("l_sm", randomGenerator.randomString(?));
+		lineItem.append("l_c", randomGenerator.randomString(?));
 		return lineItem;
 	}
 	
