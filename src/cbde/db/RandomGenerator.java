@@ -52,8 +52,8 @@ public class RandomGenerator {
 		return calendar.getTime();
 	}
 
-	public Object getRandomItem(List<?> partSupp) {
+	public Object getRandomItem(List<?> list) {
 		
-		return partSupp.get(random.nextInt(partSupp.size()));
+		return list.get(random.nextInt(list.size()));
 	}
 }
