@@ -56,7 +56,7 @@ public class MongoNormalizedScript {
 		partInserts();
 		ordersInserts();
 		partSuppInserts();
-		//lineItemInserts();
+		lineItemInserts();
 	}
 
 	private DBObject findOneBy(BasicDBObject query) {
@@ -84,12 +84,12 @@ public class MongoNormalizedScript {
 		BasicDBObject query = new BasicDBObject(TABLE, PART_TABLE);
 		DBObject document = findOneBy(query);
 		int insertedRows = insertedRowsNumber(PART_TABLE);
-		
+
+		document.put(INSERTED_ATTR, insertedRows + PART_NUM_INSERTS);
 		for(int index = insertedRows + 1; index <= insertedRows + PART_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), part(index));
 		}
 		
-		document.put(INSERTED_ATTR, insertedRows + PART_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
@@ -115,12 +115,12 @@ public class MongoNormalizedScript {
 		DBObject document = findOneBy(query);
 		int insertedRows = insertedRowsNumber(CUSTOMER_TABLE);
 		int nationsInserted = insertedRowsNumber(NATION_TABLE);
-		
+
+		document.put(INSERTED_ATTR, insertedRows + CUSTOMER_NUM_INSERTS);
 		for(int index = insertedRows + 1; index <= insertedRows + CUSTOMER_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), customer(index, nationsInserted));
 		}
 		
-		document.put(INSERTED_ATTR, insertedRows + CUSTOMER_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
@@ -145,12 +145,12 @@ public class MongoNormalizedScript {
 		DBObject document = findOneBy(query);
 		int insertedRows = insertedRowsNumber(SUPPLIER_TABLE);
 		int nationsInserted = insertedRowsNumber(NATION_TABLE);
-		
+
+		document.put(INSERTED_ATTR, insertedRows + SUPPLIER_NUM_INSERTS);
 		for(int index = insertedRows + 1; index <= insertedRows + SUPPLIER_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), supplier(index, nationsInserted));
 		}
 		
-		document.put(INSERTED_ATTR, insertedRows + SUPPLIER_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 
@@ -173,14 +173,13 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, NATION_TABLE);
 		DBObject document = findOneBy(query);
-		
 		int regionsInserted = insertedRowsNumber(REGION_TABLE);
-		
+
+		document.put(INSERTED_ATTR, NATION_NUM_INSERTS);
 		for(int index = 1; index <= NATION_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), nation(index, regionsInserted));
 		}
 		
-		document.put(INSERTED_ATTR, NATION_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
@@ -199,12 +198,12 @@ public class MongoNormalizedScript {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, REGION_TABLE);
 		DBObject document = findOneBy(query);
-		
+
+		document.put(INSERTED_ATTR, REGION_NUM_INSERTS);
 		for(int index = 1; index <= REGION_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), region(index));
 		}
 		
-		document.put(INSERTED_ATTR, REGION_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
@@ -218,21 +217,18 @@ public class MongoNormalizedScript {
 		return region;
 	}
 	
-	/////////////////////////////////////
-	// A partir d'aqui es la meva part //
-	/////////////////////////////////////
 	private void ordersInserts() {
 		
 		BasicDBObject query = new BasicDBObject(TABLE, ORDERS_TABLE);
 		DBObject document = findOneBy(query);
 		int insertedRows = insertedRowsNumber(ORDERS_TABLE);
 		int customersInserted = insertedRowsNumber(CUSTOMER_TABLE);
-		
+
+		document.put(INSERTED_ATTR, insertedRows + ORDERS_NUM_INSERTS);
 		for(int index = insertedRows + 1; index <= insertedRows + ORDERS_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), orders(index, customersInserted));
 		}
 		
-		document.put(INSERTED_ATTR, insertedRows + ORDERS_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
@@ -241,13 +237,13 @@ public class MongoNormalizedScript {
 		BasicDBObject order = new BasicDBObject();
 		order.append("o_ok", index);
 		order.append("o_ck", randomGenerator.randomInt(1, customersInserted));
-		order.append("o_os", randomGenerator.randomString(?));
-		order.append("o_tp", randomGenerator.randomInt(?));  // es decimal, ja esta bé?
+		order.append("o_os", randomGenerator.randomString(32));
+		order.append("o_tp", randomGenerator.randomInt(7));
 		order.append("o_od", randomGenerator.randomDate());
-		order.append("o_op", randomGenerator.randomString(?));
-		order.append("o_cl", randomGenerator.randomString(?));
-		order.append("o_sp", randomGenerator.randomInt(?));
-		order.append("o_co", randomGenerator.randomString(?));
+		order.append("o_op", randomGenerator.randomString(8));
+		order.append("o_cl", randomGenerator.randomString(32));
+		order.append("o_sp", randomGenerator.randomInt(4));
+		order.append("o_co", randomGenerator.randomString(40));
 		
 		return order;
 	}
@@ -259,24 +255,24 @@ public class MongoNormalizedScript {
 		int insertedRows = insertedRowsNumber(PART_SUPP_TABLE);
 		int partsInserted = insertedRowsNumber(PART_TABLE);
 		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
-		
+
+		document.put(INSERTED_ATTR, insertedRows + PART_SUPP_NUM_INSERTS);		
 		for(int index = insertedRows + 1; index <= insertedRows + PART_SUPP_NUM_INSERTS; index++) {
 			document.put(String.valueOf(index), partSupp(partsInserted, suppliersInserted));
 		}
 
-		document.put(INSERTED_ATTR, insertedRows + PART_SUPP_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 	
 	private DBObject partSupp(int partsInserted, int suppliersInserted) {
 		
-		// Aixo no esta be pq la primary key no es respecta
+		//TODO: do the primary key generation
 		BasicDBObject partSupp = new BasicDBObject();
 		partSupp.append("ps_pk", randomGenerator.randomInt(1, partsInserted));
 		partSupp.append("ps_sk", randomGenerator.randomInt(1, suppliersInserted));
-		partSupp.append("ps_a", randomGenerator.randomInt(?));
-		partSupp.append("ps_sc", randomGenerator.randomInt(?));  // es decimal, ja esta be?
-		partSupp.append("ps_c", randomGenerator.randomString(?));
+		partSupp.append("ps_a", randomGenerator.randomInt(4));
+		partSupp.append("ps_sc", randomGenerator.randomInt(7));
+		partSupp.append("ps_c", randomGenerator.randomString(100));
 		
 		return partSupp;
 	} 
@@ -290,34 +286,33 @@ public class MongoNormalizedScript {
 		int partsInserted = insertedRowsNumber(PART_TABLE);
 		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
 		
+		document.put(INSERTED_ATTR, insertedRows + LINE_ITEM_NUM_INSERTS);
 		for(int index = insertedRows + 1; index <= insertedRows + LINE_ITEM_NUM_INSERTS; index++) {
-			document.put(String.valueOf(index), lineItem(index, ordersInserted, partsInserted, suppliersInserted));	
+			document.put(String.valueOf(index), lineItem(ordersInserted, partsInserted, suppliersInserted));	
 		}
 		
-		document.put(INSERTED_ATTR, insertedRows + LINE_ITEM_NUM_INSERTS);
 		normalizedCollection.save(document);
 	}
 
-	private DBObject lineItem(int index, int ordersInserted, int partsInserted, int suppliersInserted) {
+	private DBObject lineItem(int ordersInserted, int partsInserted, int suppliersInserted) {
 		
-		// Aixo no tinc clar que sigui correcte
 		BasicDBObject lineItem = new BasicDBObject();
 		lineItem.append("l_ok", randomGenerator.randomInt(1, ordersInserted));
 		lineItem.append("l_pk", randomGenerator.randomInt(1, partsInserted));
-		lineItem.append("l_sk",randomGenerator.randomInt(1, suppliersInserted) );
-		lineItem.append("l_ln", index);
-		lineItem.append("l_q", randomGenerator.randomInt(?));
-		lineItem.append("l_ep", randomGenerator.randomInt(?));  // es decimal, ja esta be?
-		lineItem.append("l_d", randomGenerator.randomInt(?));  // es decimal, ja esta be?
-		lineItem.append("l_t", randomGenerator.randomInt(?));  // es decimal, ja esta be?
-		lineItem.append("l_rf", randomGenerator.randomString(?));
-		lineItem.append("l_ls", randomGenerator.randomString(?));
+		lineItem.append("l_sk", randomGenerator.randomInt(1, suppliersInserted));
+		lineItem.append("l_ln", randomGenerator.randomInt(4));
+		lineItem.append("l_q", randomGenerator.randomInt(4));
+		lineItem.append("l_ep", randomGenerator.randomInt(7));
+		lineItem.append("l_d", randomGenerator.randomInt(7));
+		lineItem.append("l_t", randomGenerator.randomInt(7));
+		lineItem.append("l_rf", randomGenerator.randomString(32));
+		lineItem.append("l_ls", randomGenerator.randomString(32));
 		lineItem.append("l_sd", randomGenerator.randomDate());
 		lineItem.append("l_cd", randomGenerator.randomDate());
 		lineItem.append("l_rd", randomGenerator.randomDate());
-		lineItem.append("l_ss", randomGenerator.randomString(?));
-		lineItem.append("l_sm", randomGenerator.randomString(?));
-		lineItem.append("l_c", randomGenerator.randomString(?));
+		lineItem.append("l_ss", randomGenerator.randomString(32));
+		lineItem.append("l_sm", randomGenerator.randomString(32));
+		lineItem.append("l_c", randomGenerator.randomString(32));
 		return lineItem;
 	}
 	
