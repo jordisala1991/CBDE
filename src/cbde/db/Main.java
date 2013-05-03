@@ -1,17 +1,37 @@
 package cbde.db;
 
-import java.net.UnknownHostException;
-import java.sql.SQLException;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.Map;
+import com.esotericsoftware.yamlbeans.YamlException;
+import com.esotericsoftware.yamlbeans.YamlReader;
 
 public class Main {
 
- 	public static void main(String[] args) throws UnknownHostException, SQLException {
+ 	private static final String PARAMETERS_FILENAME = "paramters.yml";
+
+	public static void main(String[] args) throws Exception {
  	
- 		/*MongoNormalizedScript mongoScript = new MongoNormalizedScript();
- 		mongoScript.deleteCollection();
- 		mongoScript.randomInserts();*/
- 		OracleFirstScript ofc = new OracleFirstScript();
- 		ofc.randomInserts();
+		readParameters();
+		
+		if (Parameters.getDatabaseName().equals(Parameters.ORACLE)) {
+			OracleFirstScript ofc = new OracleFirstScript();
+			ofc.randomInserts();			
+		}
+		else {
+			MongoNormalizedScript mongoScript = new MongoNormalizedScript();
+			mongoScript.deleteCollection();
+			mongoScript.randomInserts();			
+		}
+	}
+ 	
+ 	@SuppressWarnings("unchecked")
+	private static void readParameters() throws FileNotFoundException, YamlException {
+
+		YamlReader reader = new YamlReader(new FileReader(PARAMETERS_FILENAME));
+
+		Map<String, String> configuration = (Map<String, String>) reader.read();
+		Parameters.initialize(configuration);
 	}
 
 }
