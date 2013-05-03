@@ -3,7 +3,12 @@ package cbde.db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 public class OracleFirstScript {
 	
@@ -33,16 +38,52 @@ public class OracleFirstScript {
 		regionInserts();
 	}
 	
+	private int insertedRowsNumber(String tableName) {
+
+		Statement statement = null;
+		ResultSet result = null;
+		int res = 0;
+		try {
+			statement = connection.createStatement();
+		    result = statement.executeQuery("SELECT COUNT(*) FROM " + tableName);
+		    result.next();
+		    res = result.getInt(1);
+		    result.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	    return res;
+	}	
+	
 	public void regionInserts() throws SQLException {
 		
-		String regionInsert = "INSERT INTO region" + "(R_RegionKey, R_Name, R_Comment) VALUES" + "(?, ?, ?)";
+		if (insertedRowsNumber("region") == 0) { 
+			String regionInsert = "INSERT INTO region" + "(R_RegionKey, R_Name, R_Comment) VALUES" + "(?, ?, ?)";
+			
+			for (int index = 1; index <= REGION_NUM_INSERTS; index++) {
+				PreparedStatement preparedStatement = connection.prepareStatement(regionInsert);
+				preparedStatement.setInt(1, index);
+				preparedStatement.setString(2, randomGenerator.randomString(32));
+				preparedStatement.setString(3, randomGenerator.randomString(80));
+				preparedStatement .executeUpdate();
+			}
+		}
+	}
+	
+	public void nationInserts() throws SQLException {
 		
-		for (int index = 1; index <= REGION_NUM_INSERTS; index++) {
-			PreparedStatement preparedStatement = connection.prepareStatement(regionInsert);
-			preparedStatement.setInt(1, index);
-			preparedStatement.setString(2, randomGenerator.randomString(32));
-			preparedStatement.setString(3, randomGenerator.randomString(80));
-			preparedStatement .executeUpdate();
+		if (insertedRowsNumber("nation") == 0) { 		
+			String nationInsert = "INSERT INTO nation" + "(N_NationKey, N_Name, N_RegionKey, N_Comment) VALUES" + "(?, ?, ?)";
+			int regionsInserted = insertedRowsNumber("region");
+			
+			for (int index = 1; index <= REGION_NUM_INSERTS; index++) {
+				PreparedStatement preparedStatement = connection.prepareStatement(nationInsert);
+				preparedStatement.setInt(1, index);
+				preparedStatement.setString(2, randomGenerator.randomString(32));
+				preparedStatement.setInt(3, regionsInserted);
+				preparedStatement.setString(4, randomGenerator.randomString(80));
+				preparedStatement .executeUpdate();
+			}
 		}
 	}
 	
