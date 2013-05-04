@@ -89,7 +89,7 @@ public class OracleFirstScript {
 		supplierInserts();
 		customerInserts();
 		partInserts();
-		//ordersInserts();
+		ordersInserts();
 		//partSuppInserts();
 		//lineItemInserts();
 	}
@@ -219,7 +219,7 @@ public class OracleFirstScript {
 			preparedStatement.setInt(2, randomGenerator.randomInt(1, customersInserted));
 			preparedStatement.setString(3, randomGenerator.randomString(32));
 			preparedStatement.setInt(4, randomGenerator.randomInt(7));
-			java.sql.Date sqlDate = new java.sql.Date(randomGenerator.randomDate().getTime());
+			Date sqlDate = new Date(randomGenerator.randomDate().getTime());
 			preparedStatement.setDate(5, sqlDate);
 			preparedStatement.setString(6, randomGenerator.randomString(8));
 			preparedStatement.setString(7, randomGenerator.randomString(32));
