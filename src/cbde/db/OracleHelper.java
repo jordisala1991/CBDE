@@ -29,7 +29,7 @@ public class OracleHelper {
 			
 			while (queryResult.next()) {
 				for (int index = 1; index <= metadata.getColumnCount(); index++) {
-					res.get(index - 1).add(queryResult.getString(index -1));
+					res.get(index - 1).add(queryResult.getString(index));
 				}
 			}
 			
