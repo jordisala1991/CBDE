@@ -131,29 +131,25 @@ public class OracleFirstScript {
 	
 	private void fourthQuery() throws SQLException {
 		
-		String query = 
-				"SELECT " +
-				"l_returnflag, l_linestatus, " +
-				"sum(l_quantity) as sum_qty, " +
-				"sum(l_extendedprice) as sum_base_price, " +
-				"sum(l_extendedprice*(1-l_discount)) as sum_disc_price, " +
-				"sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, " +
-				"avg(l_quantity) as avg_qty, " +
-				"avg(l_extendedprice) as avg_price, " +
-				"avg(l_discount) as avg_disc, " +
-				"count(*) as count_order " +
-				"FROM lineitem " +
-				"WHERE l_shipdate <= ? " +
-				"GROUP BY l_returnflag, l_linestatus " +
-				"ORDER BY l_returnflag, l_linestatus";
-			
-			PreparedStatement preparedStatement = connection.prepareStatement(query);
-			//TODO: this is not the correct date, fetch from lineitem
-			preparedStatement.setDate(1, new Date(new java.util.Date().getTime())); 
-			
-			ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
-			OracleHelper.showQueryResult(result);
+		String query =
+			"SELECT n_name, sum(l_extendedprice * (1 - l_discount)) as revenue " +
+			"FROM customer, orders, lineitem, supplier, nation, region " +
+			"WHERE c_custkey = o_custkey AND l_orderkey = o_orderkey AND l_suppkey = s_suppkey " +
+			"AND c_nationkey = s_nationkey AND s_nationkey = n_nationkey " +
+			"AND n_regionkey = r_regionkey AND r_name = ? AND o_orderdate >= ? " +
+			"AND o_orderdate < ? + interval '1' year " +
+			"GROUP BY n_name " +
+			"ORDER BY revenue desc";
 		
+		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		//TODO: this is not the correct date, fetch from lineitem
+		Date orderDate = new Date(new java.util.Date().getTime());
+		preparedStatement.setString(1, randomGenerator.randomString(32));
+		preparedStatement.setDate(2, orderDate);
+		preparedStatement.setDate(3, orderDate);
+		
+		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
+		OracleHelper.showQueryResult(result);
 	}
 
 	public void randomInserts() throws SQLException {
