@@ -90,6 +90,9 @@ public class MongoNormalizedScript {
 		BasicDBObject query = new BasicDBObject(TABLE, tableName);
 		DBObject result = normalizedCollection.findOne(query, projection);
 		
+		if (result == null) {
+			return new BasicDBList();
+		}
 		return (BasicDBList) result.get("rows");
 	}
 	
@@ -278,20 +281,30 @@ public class MongoNormalizedScript {
 		int insertedRows = insertedRowsNumber(PART_SUPP_TABLE);
 		int partsInserted = insertedRowsNumber(PART_TABLE);
 		int suppliersInserted = insertedRowsNumber(SUPPLIER_TABLE);
-
+		
+		BasicDBObject pk_partsup = new BasicDBObject();
+		pk_partsup.append("rows.ps_pk", true);
+		pk_partsup.append("rows.ps_sk", true);
+		BasicDBList partSuppRows = getListOfProjectedRows(PART_SUPP_TABLE, pk_partsup);
+		
 		document.put(INSERTED_ATTR, insertedRows + PART_SUPP_NUM_INSERTS);		
 		for(int index = 1; index <= PART_SUPP_NUM_INSERTS; index++) {
-			rows.add(partSupp(partsInserted, suppliersInserted));
+			BasicDBObject randomPK = new BasicDBObject();
+			do {
+				randomPK.append("ps_pk", randomGenerator.randomInt(1, partsInserted));
+				randomPK.append("ps_sk", randomGenerator.randomInt(1, suppliersInserted));
+			} while(partSuppRows.contains(randomPK));
+			rows.add(partSupp(randomPK));
 		}
 
 		normalizedCollection.save(document);
 	}
 	
-	private DBObject partSupp(int partsInserted, int suppliersInserted) {
+	private DBObject partSupp(BasicDBObject primaryKey) {
 		
 		BasicDBObject partSupp = new BasicDBObject();
-		partSupp.append("ps_pk", randomGenerator.randomInt(1, partsInserted));
-		partSupp.append("ps_sk", randomGenerator.randomInt(1, suppliersInserted));
+		partSupp.append("ps_pk", primaryKey.get("ps_pk"));
+		partSupp.append("ps_sk", primaryKey.get("ps_sk"));
 		partSupp.append("ps_a", randomGenerator.randomInt(4));
 		partSupp.append("ps_sc", randomGenerator.randomInt(7));
 		partSupp.append("ps_c", randomGenerator.randomString(100));
@@ -314,20 +327,20 @@ public class MongoNormalizedScript {
 		
 		document.put(INSERTED_ATTR, insertedRows + LINE_ITEM_NUM_INSERTS);
 		for(int index = 1; index <= LINE_ITEM_NUM_INSERTS; index++) {
-			DBObject partSupp = (DBObject) randomGenerator.getRandomItem(partSuppRows);
-			rows.add(lineItem(ordersInserted, partSupp));
+			BasicDBObject partSupp = (BasicDBObject) randomGenerator.getRandomItem(partSuppRows);
+			rows.add(lineItem(index + insertedRows, ordersInserted, partSupp));
 		}
 		
 		normalizedCollection.save(document);
 	}
 
-	private DBObject lineItem(int ordersInserted, DBObject partSupp) {
+	private DBObject lineItem(int index, int ordersInserted, BasicDBObject partSupp) {
 		
 		BasicDBObject lineItem = new BasicDBObject();
 		lineItem.append("l_ok", randomGenerator.randomInt(1, ordersInserted));
 		lineItem.append("l_pk", partSupp.get("ps_pk"));
 		lineItem.append("l_sk", partSupp.get("ps_sk"));
-		lineItem.append("l_ln", randomGenerator.randomInt(4));
+		lineItem.append("l_ln", index);
 		lineItem.append("l_q", randomGenerator.randomInt(4));
 		lineItem.append("l_ep", randomGenerator.randomInt(7));
 		lineItem.append("l_d", randomGenerator.randomInt(7));
