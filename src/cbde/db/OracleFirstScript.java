@@ -57,9 +57,9 @@ public class OracleFirstScript {
 	
 	public void executeQuerys() throws SQLException, ParseException {
 		
-		//firstQuery();
+		firstQuery();
 		secondQuery();
-		//thirdQuery();
+		thirdQuery();
 		fourthQuery();
 	}
 
@@ -215,8 +215,8 @@ public class OracleFirstScript {
 		customerInserts();
 		partInserts();
 		ordersInserts();
-		//partSuppInserts();
-		//lineItemInserts();
+		partSuppInserts();
+		lineItemInserts();
 	}
 	
 	private void regionInserts() throws SQLException {
@@ -337,6 +337,80 @@ public class OracleFirstScript {
 			preparedStatement.setString(7, randomGenerator.randomString(32));
 			preparedStatement.setInt(8, randomGenerator.randomInt(4));
 			preparedStatement.setString(9, randomGenerator.randomString(40));
+			preparedStatement.addBatch();
+		}
+		preparedStatement.executeBatch();
+		preparedStatement.close();
+	}
+	
+	private void partSuppInserts() throws SQLException {
+		
+		String partSuppInsert = "INSERT INTO partsupp (PS_PartKey, PS_SuppKey, PS_AvailQty, PS_SupplyCost, PS_Comment) VALUES (?, ?, ?, ?, ?)";
+		int partsInserted = OracleHelper.insertedRowsNumber(connection, PART_TABLE);
+		int suppliersInserted = OracleHelper.insertedRowsNumber(connection, SUPPLIER_TABLE);
+		
+		ArrayList<String> columns = new ArrayList<String>();
+		columns.add("PS_PartKey");
+		columns.add("PS_SuppKey");
+		ArrayList<ArrayList<String>> currentInsertions = OracleHelper.getColumns(connection, PART_SUPP_TABLE, columns);
+
+		PreparedStatement preparedStatement = connection.prepareStatement(partSuppInsert);
+		for (int index = 1; index <= PART_SUPP_NUM_INSERTS; index++) {
+			int partKey = randomGenerator.randomInt(1, partsInserted);
+			int suppKey = randomGenerator.randomInt(1, suppliersInserted);
+			ArrayList<String> pair = new ArrayList<String>();
+			pair.add(String.valueOf(partKey));
+			pair.add(String.valueOf(suppKey));
+			while (currentInsertions.contains(pair)) {
+				partKey = randomGenerator.randomInt(1, partsInserted);
+				suppKey = randomGenerator.randomInt(1, suppliersInserted);
+				pair.set(0, String.valueOf(partKey));
+				pair.set(1, String.valueOf(suppKey));
+			}
+			currentInsertions.add(pair);
+			preparedStatement.setInt(1, partKey);
+			preparedStatement.setInt(2, suppKey);
+			preparedStatement.setInt(3, randomGenerator.randomInt(4));
+			preparedStatement.setInt(4, randomGenerator.randomInt(7));
+			preparedStatement.setString(5, randomGenerator.randomString(100));
+			preparedStatement.addBatch();
+		}
+		preparedStatement.executeBatch();
+		preparedStatement.close();
+	}
+	
+	private void lineItemInserts() throws SQLException {
+		
+		String lineItemInsert = "INSERT INTO lineitem (L_OrderKey, L_PartKey, L_SuppKey, L_LineNumber, L_Quantity, L_ExtendedPrice, L_Discount, L_Tax, L_ReturnFlag, L_LineStatus, L_ShipDate, L_CommitDate, L_ReceiptDate, L_ShipInstruct, L_ShipMode, L_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int ordersInserted = OracleHelper.insertedRowsNumber(connection, ORDERS_TABLE);
+		int insertedRows = OracleHelper.insertedRowsNumber(connection, LINE_ITEM_TABLE);
+		
+		ArrayList<String> columns = new ArrayList<String>();
+		columns.add("PS_PartKey");
+		columns.add("PS_SuppKey");
+		ArrayList<ArrayList<String>> currentInsertions = OracleHelper.getColumns(connection, PART_SUPP_TABLE, columns);
+
+		PreparedStatement preparedStatement = connection.prepareStatement(lineItemInsert);
+		for (int index = 1; index <= LINE_ITEM_NUM_INSERTS; index++) {
+			int randomPos = randomGenerator.randomInt(0, currentInsertions.size() - 1);
+			ArrayList<String> pair = currentInsertions.get(randomPos);
+
+			preparedStatement.setInt(1, randomGenerator.randomInt(1, ordersInserted));
+			preparedStatement.setInt(2, Integer.parseInt(pair.get(0)));
+			preparedStatement.setInt(3, Integer.parseInt(pair.get(1)));
+			preparedStatement.setInt(4, index + insertedRows);
+			preparedStatement.setInt(5, randomGenerator.randomInt(4));
+			preparedStatement.setInt(6, randomGenerator.randomInt(7));
+			preparedStatement.setInt(7, randomGenerator.randomInt(7));
+			preparedStatement.setInt(8, randomGenerator.randomInt(7));
+			preparedStatement.setString(9, randomGenerator.randomString(32));
+			preparedStatement.setString(10, randomGenerator.randomString(32));
+			preparedStatement.setDate(11, OracleHelper.convertToSQLDate(randomGenerator.randomDate()));
+			preparedStatement.setDate(12, OracleHelper.convertToSQLDate(randomGenerator.randomDate()));
+			preparedStatement.setDate(13, OracleHelper.convertToSQLDate(randomGenerator.randomDate()));
+			preparedStatement.setString(14, randomGenerator.randomString(32));
+			preparedStatement.setString(15, randomGenerator.randomString(32));
+			preparedStatement.setString(16, randomGenerator.randomString(32));
 			preparedStatement.addBatch();
 		}
 		preparedStatement.executeBatch();
