@@ -210,8 +210,8 @@ public class OracleFirstScript {
 		int nationsInserted = OracleHelper.insertedRowsNumber(connection, NATION_TABLE);
 		int insertedRows = OracleHelper.insertedRowsNumber(connection, SUPPLIER_TABLE);
 		
+		PreparedStatement preparedStatement = connection.prepareStatement(supplierInsert);
 		for (int index = 1; index <= SUPPLIER_NUM_INSERTS; index++) {
-			PreparedStatement preparedStatement = connection.prepareStatement(supplierInsert);
 			preparedStatement.setInt(1, index + insertedRows);			
 			preparedStatement.setString(2, randomGenerator.randomString(32));
 			preparedStatement.setString(3, randomGenerator.randomString(32));
@@ -219,9 +219,10 @@ public class OracleFirstScript {
 			preparedStatement.setString(5, randomGenerator.randomString(9));
 			preparedStatement.setInt(6, randomGenerator.randomInt(7));
 			preparedStatement.setString(7, randomGenerator.randomString(53));
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
+			preparedStatement.addBatch();
 		}
+		preparedStatement.executeBatch();
+		preparedStatement.close();
 	}
 	
 	private void customerInserts() throws SQLException {
@@ -230,8 +231,8 @@ public class OracleFirstScript {
 		int nationsInserted = OracleHelper.insertedRowsNumber(connection, NATION_TABLE);
 		int insertedRows = OracleHelper.insertedRowsNumber(connection, CUSTOMER_TABLE);
 		
+		PreparedStatement preparedStatement = connection.prepareStatement(customerInsert);
 		for (int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
-			PreparedStatement preparedStatement = connection.prepareStatement(customerInsert);
 			preparedStatement.setInt(1, index + insertedRows);			
 			preparedStatement.setString(2, randomGenerator.randomString(32));
 			preparedStatement.setString(3, randomGenerator.randomString(32));
@@ -240,9 +241,10 @@ public class OracleFirstScript {
 			preparedStatement.setInt(6, randomGenerator.randomInt(7));
 			preparedStatement.setString(7, randomGenerator.randomString(32));
 			preparedStatement.setString(8, randomGenerator.randomString(60));
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
+			preparedStatement.addBatch();
 		}
+		preparedStatement.executeBatch();
+		preparedStatement.close();
 	}
 	
 	private void partInserts() throws SQLException {
@@ -250,8 +252,8 @@ public class OracleFirstScript {
 		String partInsert = "INSERT INTO part (P_PartKey, P_Name, P_Mfgr, P_Brand, P_Type, P_Size, P_Container, P_RetailPrice, P_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		int insertedRows = OracleHelper.insertedRowsNumber(connection, PART_TABLE);
 		
+		PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
 		for (int index = 1; index <= PART_NUM_INSERTS; index++) {
-			PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
 			preparedStatement.setInt(1, index + insertedRows);			
 			preparedStatement.setString(2, randomGenerator.randomString(32));
 			preparedStatement.setString(3, randomGenerator.randomString(32));
@@ -261,9 +263,10 @@ public class OracleFirstScript {
 			preparedStatement.setString(7, randomGenerator.randomString(32));
 			preparedStatement.setInt(8, randomGenerator.randomInt(7));
 			preparedStatement.setString(9, randomGenerator.randomString(32));
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
+			preparedStatement.addBatch();
 		}
+		preparedStatement.executeBatch();
+		preparedStatement.close();
 	}
 	
 	private void ordersInserts() throws SQLException {
@@ -271,9 +274,9 @@ public class OracleFirstScript {
 		String partInsert = "INSERT INTO orders (O_OrderKey, O_CustKey, O_OrderStatus, O_TotalPrice, O_OrderDate, O_OrderPriority, O_Clerk, O_ShipPriority, O_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		int customersInserted = OracleHelper.insertedRowsNumber(connection, CUSTOMER_TABLE);
 		int insertedRows = OracleHelper.insertedRowsNumber(connection, ORDERS_TABLE);
-		
+
+		PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
 		for (int index = 1; index <= ORDERS_NUM_INSERTS; index++) {
-			PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
 			preparedStatement.setInt(1, index + insertedRows);			
 			preparedStatement.setInt(2, randomGenerator.randomInt(1, customersInserted));
 			preparedStatement.setString(3, randomGenerator.randomString(32));
@@ -284,9 +287,12 @@ public class OracleFirstScript {
 			preparedStatement.setString(7, randomGenerator.randomString(32));
 			preparedStatement.setInt(8, randomGenerator.randomInt(4));
 			preparedStatement.setString(9, randomGenerator.randomString(40));
-			preparedStatement.executeUpdate();
-			preparedStatement.close();
+			preparedStatement.addBatch();
 		}
+		preparedStatement.executeBatch();
+		preparedStatement.close();
 	}
+	
+	
 	
 }
