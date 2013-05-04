@@ -5,13 +5,8 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 public class OracleFirstScript {
 	
@@ -93,7 +88,7 @@ public class OracleFirstScript {
 		nationInserts();
 		supplierInserts();
 		customerInserts();
-		//partInserts();
+		partInserts();
 		//ordersInserts();
 		//partSuppInserts();
 		//lineItemInserts();
@@ -114,7 +109,7 @@ public class OracleFirstScript {
 			e.printStackTrace();
 		}
 	    return res;
-	}	
+	}
 	
 	private void regionInserts() throws SQLException {
 		
@@ -208,6 +203,7 @@ public class OracleFirstScript {
 			preparedStatement.setInt(8, randomGenerator.randomInt(7));
 			preparedStatement.setString(9, randomGenerator.randomString(32));
 			preparedStatement.executeUpdate();
+			preparedStatement.close();
 		}
 	}
 	
