@@ -150,4 +150,26 @@ public class OracleFirstScript {
 		}
 	}
 	
+	private void ordersInserts() throws SQLException {
+		
+		String partInsert = "INSERT INTO orders" + "(O_OrderKey, O_CustKey, O_OrderStatus, O_TotalPrice, O_OrderDate, O_OrderPriority, O_Clerl, O_ShipPriority, O_ Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int customersInserted = insertedRowsNumber("customer");
+		int insertedRows = insertedRowsNumber("orders");
+		
+		for (int index = 1; index <= ORDERS_NUM_INSERTS; index++) {
+			PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
+			preparedStatement.setInt(1, index + insertedRows);			
+			preparedStatement.setInt(2, randomGenerator.randomInt(1, customersInserted));
+			preparedStatement.setString(3, randomGenerator.randomString(32));
+			preparedStatement.setInt(4, randomGenerator.randomInt(7));
+			java.sql.Date sqlDate = new java.sql.Date(randomGenerator.randomDate().getTime());
+			preparedStatement.setDate(5, sqlDate);
+			preparedStatement.setString(6, randomGenerator.randomString(8));
+			preparedStatement.setString(7, randomGenerator.randomString(32));
+			preparedStatement.setInt(8, randomGenerator.randomInt(4));
+			preparedStatement.setString(9, randomGenerator.randomString(40));
+			preparedStatement.executeUpdate();
+		}
+	}
+	
 }
