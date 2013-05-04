@@ -9,6 +9,8 @@ import java.sql.Statement;
 
 public class OracleHelper {
 
+	private OracleHelper() { }
+	
 	public static void showQueryResult(ResultSet queryResult) throws SQLException {
 		
 		ResultSetMetaData metadata = queryResult.getMetaData();
@@ -37,6 +39,18 @@ public class OracleHelper {
 		System.out.println("Query Time: " + seconds + " seconds");
 		
 		return result;
+	}
+	
+	public static int insertedRowsNumber(Connection connection, String tableName) throws SQLException {
+
+		Statement statement = connection.createStatement();
+		
+		ResultSet result = statement.executeQuery("SELECT COUNT(*) FROM " + tableName);
+		result.next();
+		int res = result.getInt(1);
+		result.close();
+		
+	    return res;
 	}
 
 	public static void truncateTable(Connection connection, String tableName) throws SQLException {

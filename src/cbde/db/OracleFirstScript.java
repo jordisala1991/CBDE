@@ -6,7 +6,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 public class OracleFirstScript {
 	
@@ -94,27 +93,10 @@ public class OracleFirstScript {
 		//lineItemInserts();
 	}
 	
-	private int insertedRowsNumber(String tableName) {
-
-		Statement statement = null;
-		ResultSet result = null;
-		int res = 0;
-		try {
-			statement = connection.createStatement();
-		    result = statement.executeQuery("SELECT COUNT(*) FROM " + tableName);
-		    result.next();
-		    res = result.getInt(1);
-		    result.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	    return res;
-	}
-	
 	private void regionInserts() throws SQLException {
 		
-		if (insertedRowsNumber("region") == 0) { 
-			String regionInsert = "INSERT INTO region" + "(R_RegionKey, R_Name, R_Comment) VALUES" + "(?, ?, ?)";
+		if (OracleHelper.insertedRowsNumber(connection, REGION_TABLE) == 0) { 
+			String regionInsert = "INSERT INTO region (R_RegionKey, R_Name, R_Comment) VALUES (?, ?, ?)";
 			
 			for (int index = 1; index <= REGION_NUM_INSERTS; index++) {
 				PreparedStatement preparedStatement = connection.prepareStatement(regionInsert);
@@ -129,9 +111,9 @@ public class OracleFirstScript {
 	
 	private void nationInserts() throws SQLException {
 		
-		if (insertedRowsNumber("nation") == 0) { 		
-			String nationInsert = "INSERT INTO nation" + "(N_NationKey, N_Name, N_RegionKey, N_Comment) VALUES" + "(?, ?, ?, ?)";
-			int regionsInserted = insertedRowsNumber("region");
+		if (OracleHelper.insertedRowsNumber(connection, NATION_TABLE) == 0) { 		
+			String nationInsert = "INSERT INTO nation (N_NationKey, N_Name, N_RegionKey, N_Comment) VALUES (?, ?, ?, ?)";
+			int regionsInserted = OracleHelper.insertedRowsNumber(connection, REGION_TABLE);
 			
 			for (int index = 1; index <= NATION_NUM_INSERTS; index++) {
 				PreparedStatement preparedStatement = connection.prepareStatement(nationInsert);
@@ -147,9 +129,9 @@ public class OracleFirstScript {
 	
 	private void supplierInserts() throws SQLException {
 		
-		String supplierInsert = "INSERT INTO supplier" + "(S_SuppKey, S_Name, S_Address, S_NationKey, S_Phone, S_AcctBal, S_Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?)";
-		int nationsInserted = insertedRowsNumber("nation");
-		int insertedRows = insertedRowsNumber("supplier");
+		String supplierInsert = "INSERT INTO supplier (S_SuppKey, S_Name, S_Address, S_NationKey, S_Phone, S_AcctBal, S_Comment) VALUES (?, ?, ?, ?, ?, ?, ?)";
+		int nationsInserted = OracleHelper.insertedRowsNumber(connection, NATION_TABLE);
+		int insertedRows = OracleHelper.insertedRowsNumber(connection, SUPPLIER_TABLE);
 		
 		for (int index = 1; index <= SUPPLIER_NUM_INSERTS; index++) {
 			PreparedStatement preparedStatement = connection.prepareStatement(supplierInsert);
@@ -167,9 +149,9 @@ public class OracleFirstScript {
 	
 	private void customerInserts() throws SQLException {
 		
-		String customerInsert = "INSERT INTO customer" + "(C_CustKey, C_Name, C_Address, C_NationKey, C_Phone, C_AcctBal, C_MktSegment, C_Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?, ?)";
-		int nationsInserted = insertedRowsNumber("nation");
-		int insertedRows = insertedRowsNumber("customer");
+		String customerInsert = "INSERT INTO customer (C_CustKey, C_Name, C_Address, C_NationKey, C_Phone, C_AcctBal, C_MktSegment, C_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+		int nationsInserted = OracleHelper.insertedRowsNumber(connection, NATION_TABLE);
+		int insertedRows = OracleHelper.insertedRowsNumber(connection, CUSTOMER_TABLE);
 		
 		for (int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
 			PreparedStatement preparedStatement = connection.prepareStatement(customerInsert);
@@ -188,8 +170,8 @@ public class OracleFirstScript {
 	
 	private void partInserts() throws SQLException {
 		
-		String partInsert = "INSERT INTO part" + "(P_PartKey, P_Name, P_Mfgr, P_Brand, P_Type, P_Size, P_Container, P_RetailPrice, P_ Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		int insertedRows = insertedRowsNumber("part");
+		String partInsert = "INSERT INTO part (P_PartKey, P_Name, P_Mfgr, P_Brand, P_Type, P_Size, P_Container, P_RetailPrice, P_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int insertedRows = OracleHelper.insertedRowsNumber(connection, PART_TABLE);
 		
 		for (int index = 1; index <= PART_NUM_INSERTS; index++) {
 			PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
@@ -209,9 +191,9 @@ public class OracleFirstScript {
 	
 	private void ordersInserts() throws SQLException {
 		
-		String partInsert = "INSERT INTO orders" + "(O_OrderKey, O_CustKey, O_OrderStatus, O_TotalPrice, O_OrderDate, O_OrderPriority, O_Clerl, O_ShipPriority, O_ Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-		int customersInserted = insertedRowsNumber("customer");
-		int insertedRows = insertedRowsNumber("orders");
+		String partInsert = "INSERT INTO orders (O_OrderKey, O_CustKey, O_OrderStatus, O_TotalPrice, O_OrderDate, O_OrderPriority, O_Clerk, O_ShipPriority, O_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int customersInserted = OracleHelper.insertedRowsNumber(connection, CUSTOMER_TABLE);
+		int insertedRows = OracleHelper.insertedRowsNumber(connection, ORDERS_TABLE);
 		
 		for (int index = 1; index <= ORDERS_NUM_INSERTS; index++) {
 			PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
@@ -226,6 +208,7 @@ public class OracleFirstScript {
 			preparedStatement.setInt(8, randomGenerator.randomInt(4));
 			preparedStatement.setString(9, randomGenerator.randomString(40));
 			preparedStatement.executeUpdate();
+			preparedStatement.close();
 		}
 	}
 	
