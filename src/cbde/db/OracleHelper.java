@@ -6,10 +6,39 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class OracleHelper {
 
 	private OracleHelper() { }
+
+	public static ArrayList<ArrayList<String>> getColumns(Connection connection, String tableName, ArrayList<String> columns) {
+		
+		String fields = "";
+		for (int i = 0; i < columns.size() - 1; i++) {
+			fields += columns.get(i) + ", ";
+		}
+		if (columns.size() > 0) fields += columns.get(columns.size() - 1);
+		
+		ArrayList<ArrayList<String>> res = new ArrayList<ArrayList<String>>();
+		
+		try {
+			Statement statement = connection.createStatement();
+			ResultSet queryResult = statement.executeQuery("SELECT " + fields + " FROM " + tableName);
+			ResultSetMetaData metadata = queryResult.getMetaData();
+			
+			while (queryResult.next()) {
+				for (int index = 1; index <= metadata.getColumnCount(); index++) {
+					res.get(index - 1).add(queryResult.getString(index -1));
+				}
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return res;
+	}
 	
 	public static void showQueryResult(ResultSet queryResult) throws SQLException {
 		

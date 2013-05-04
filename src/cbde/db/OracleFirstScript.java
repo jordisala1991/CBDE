@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 public class OracleFirstScript {
 	
@@ -164,6 +165,15 @@ public class OracleFirstScript {
 		customerInserts();
 		partInserts();
 		ordersInserts();
+		
+		ArrayList<String> columns = new ArrayList<String>();
+		columns.add("o_orderdate");
+		ArrayList<ArrayList<String>> a = OracleHelper.getColumns(connection, "orders", columns);
+		for (int i = 0; i < a.get(0).size() && i < 20; ++i) {
+			System.out.println(a.get(0).get(i));
+		}
+		
+		
 		//partSuppInserts();
 		//lineItemInserts();
 	}
