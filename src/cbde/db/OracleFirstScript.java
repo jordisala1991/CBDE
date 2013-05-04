@@ -98,14 +98,15 @@ public class OracleFirstScript {
 		if (OracleHelper.insertedRowsNumber(connection, REGION_TABLE) == 0) { 
 			String regionInsert = "INSERT INTO region (R_RegionKey, R_Name, R_Comment) VALUES (?, ?, ?)";
 			
+			PreparedStatement preparedStatement = connection.prepareStatement(regionInsert);
 			for (int index = 1; index <= REGION_NUM_INSERTS; index++) {
-				PreparedStatement preparedStatement = connection.prepareStatement(regionInsert);
 				preparedStatement.setInt(1, index);
 				preparedStatement.setString(2, randomGenerator.randomString(32));
 				preparedStatement.setString(3, randomGenerator.randomString(80));
-				preparedStatement.executeUpdate();
-				preparedStatement.close();
+				preparedStatement.addBatch();
 			}
+			preparedStatement.executeBatch();
+			preparedStatement.close();
 		}
 	}
 	
@@ -115,15 +116,16 @@ public class OracleFirstScript {
 			String nationInsert = "INSERT INTO nation (N_NationKey, N_Name, N_RegionKey, N_Comment) VALUES (?, ?, ?, ?)";
 			int regionsInserted = OracleHelper.insertedRowsNumber(connection, REGION_TABLE);
 			
+			PreparedStatement preparedStatement = connection.prepareStatement(nationInsert);
 			for (int index = 1; index <= NATION_NUM_INSERTS; index++) {
-				PreparedStatement preparedStatement = connection.prepareStatement(nationInsert);
 				preparedStatement.setInt(1, index);
 				preparedStatement.setString(2, randomGenerator.randomString(32));
 				preparedStatement.setInt(3, randomGenerator.randomInt(1, regionsInserted));
 				preparedStatement.setString(4, randomGenerator.randomString(80));
-				preparedStatement.executeUpdate();
-				preparedStatement.close();
+				preparedStatement.addBatch();
 			}
+			preparedStatement.executeBatch();
+			preparedStatement.close();
 		}
 	}
 	
