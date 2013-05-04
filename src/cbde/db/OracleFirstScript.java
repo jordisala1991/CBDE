@@ -5,8 +5,13 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class OracleFirstScript {
 	
@@ -16,6 +21,14 @@ public class OracleFirstScript {
 	private static final String URL = "jdbc:oracle:thin:@oraclefib.fib.upc.es:1521:ORABD";
 	private static final String USERNAME = "daniel.llamazares";
 	private static final String PASSWORD = "DB021091";
+	private static final String REGION_TABLE = "region";
+	private static final String NATION_TABLE = "nation";
+	private static final String SUPPLIER_TABLE = "supplier";
+	private static final String CUSTOMER_TABLE = "customer";
+	private static final String PART_TABLE = "part";
+	private static final String ORDERS_TABLE = "orders";
+	private static final String PART_SUPP_TABLE = "partsupp";
+	private static final String LINE_ITEM_TABLE = "lineitem";
 	private static final int REGION_NUM_INSERTS = 5;
 	private static final int NATION_NUM_INSERTS = 25;
 	private static final int SUPPLIER_NUM_INSERTS = 33;
@@ -31,6 +44,18 @@ public class OracleFirstScript {
 		randomGenerator = new RandomGenerator();
 	}
 	
+	public void cleanTables() throws SQLException {
+	
+		OracleHelper.truncateTable(connection, REGION_TABLE);
+		OracleHelper.truncateTable(connection, NATION_TABLE);
+		OracleHelper.truncateTable(connection, SUPPLIER_TABLE);
+		OracleHelper.truncateTable(connection, CUSTOMER_TABLE);
+		OracleHelper.truncateTable(connection, PART_TABLE);
+		OracleHelper.truncateTable(connection, ORDERS_TABLE);
+		OracleHelper.truncateTable(connection, PART_SUPP_TABLE);
+		OracleHelper.truncateTable(connection, LINE_ITEM_TABLE);
+	}
+	
 	public void executeQuerys() throws SQLException {
 		
 		firstQuery();
@@ -38,18 +63,28 @@ public class OracleFirstScript {
 	
 	public void firstQuery() throws SQLException {
 		
-		String query = "SELECT l_returnflag, l_linestatus, sum(l_quantity) as sum_qty, " +
-			"sum(l_extendedprice) as sum_base_price, sum(l_extendedprice*(1-l_discount)) as " +
-			"sum_disc_price, sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, " +
-			"avg(l_quantity) as avg_qty, avg(l_extendedprice) as avg_price, avg(l_discount) " +
-			"as avg_disc, count(*) as count_order FROM lineitem WHERE l_shipdate <= ? " +
+		String query = 
+			"SELECT " +
+			"l_returnflag, l_linestatus, " +
+			"sum(l_quantity) as sum_qty, " +
+			"sum(l_extendedprice) as sum_base_price, " +
+			"sum(l_extendedprice*(1-l_discount)) as sum_disc_price, " +
+			"sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, " +
+			"avg(l_quantity) as avg_qty, " +
+			"avg(l_extendedprice) as avg_price, " +
+			"avg(l_discount) as avg_disc, " +
+			"count(*) as count_order " +
+			"FROM lineitem " +
+			"WHERE l_shipdate <= ? " +
 			"GROUP BY l_returnflag, l_linestatus " +
-			"ORDER BY l_returnflag, l_linestatus;";
+			"ORDER BY l_returnflag, l_linestatus";
 		
 		PreparedStatement preparedStatement = connection.prepareStatement(query);
-		preparedStatement.setDate(1, new Date(new java.util.Date().getTime()));
-		ResultSet result = preparedStatement.executeQuery();
+		//TODO: this is not the correct date, fetch from lineitem
+		preparedStatement.setDate(1, new Date(new java.util.Date().getTime())); 
 		
+		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
+		OracleHelper.showQueryResult(result);
 	}
 
 	public void randomInserts() throws SQLException {
@@ -58,10 +93,10 @@ public class OracleFirstScript {
 		nationInserts();
 		supplierInserts();
 		customerInserts();
-		partInserts();
-		ordersInserts();
-		partSuppInserts();
-		lineItemInserts();
+		//partInserts();
+		//ordersInserts();
+		//partSuppInserts();
+		//lineItemInserts();
 	}
 	
 	private int insertedRowsNumber(String tableName) {
@@ -92,6 +127,7 @@ public class OracleFirstScript {
 				preparedStatement.setString(2, randomGenerator.randomString(32));
 				preparedStatement.setString(3, randomGenerator.randomString(80));
 				preparedStatement.executeUpdate();
+				preparedStatement.close();
 			}
 		}
 	}
@@ -109,6 +145,7 @@ public class OracleFirstScript {
 				preparedStatement.setInt(3, randomGenerator.randomInt(1, regionsInserted));
 				preparedStatement.setString(4, randomGenerator.randomString(80));
 				preparedStatement.executeUpdate();
+				preparedStatement.close();
 			}
 		}
 	}
@@ -129,6 +166,7 @@ public class OracleFirstScript {
 			preparedStatement.setInt(6, randomGenerator.randomInt(7));
 			preparedStatement.setString(7, randomGenerator.randomString(53));
 			preparedStatement.executeUpdate();
+			preparedStatement.close();
 		}
 	}
 	
@@ -149,6 +187,7 @@ public class OracleFirstScript {
 			preparedStatement.setString(7, randomGenerator.randomString(32));
 			preparedStatement.setString(8, randomGenerator.randomString(60));
 			preparedStatement.executeUpdate();
+			preparedStatement.close();
 		}
 	}
 	
