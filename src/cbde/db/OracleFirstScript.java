@@ -191,4 +191,24 @@ public class OracleFirstScript {
 		}
 	}
 	
+	private void partInserts() throws SQLException {
+		
+		String partInsert = "INSERT INTO part" + "(P_PartKey, P_Name, P_Mfgr, P_Brand, P_Type, P_Size, P_Container, P_RetailPrice, P_ Comment) VALUES" + "(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		int insertedRows = insertedRowsNumber("part");
+		
+		for (int index = 1; index <= PART_NUM_INSERTS; index++) {
+			PreparedStatement preparedStatement = connection.prepareStatement(partInsert);
+			preparedStatement.setInt(1, index + insertedRows);			
+			preparedStatement.setString(2, randomGenerator.randomString(32));
+			preparedStatement.setString(3, randomGenerator.randomString(32));
+			preparedStatement.setString(4, randomGenerator.randomString(32));
+			preparedStatement.setString(5, randomGenerator.randomString(32));
+			preparedStatement.setInt(6, randomGenerator.randomInt(4));
+			preparedStatement.setString(7, randomGenerator.randomString(32));
+			preparedStatement.setInt(8, randomGenerator.randomInt(7));
+			preparedStatement.setString(9, randomGenerator.randomString(32));
+			preparedStatement.executeUpdate();
+		}
+	}
+	
 }
