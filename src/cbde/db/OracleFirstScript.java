@@ -1,6 +1,7 @@
 package cbde.db;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,6 +29,27 @@ public class OracleFirstScript {
 	
 		connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 		randomGenerator = new RandomGenerator();
+	}
+	
+	public void executeQuerys() throws SQLException {
+		
+		firstQuery();
+	}
+	
+	public void firstQuery() throws SQLException {
+		
+		String query = "SELECT l_returnflag, l_linestatus, sum(l_quantity) as sum_qty, " +
+			"sum(l_extendedprice) as sum_base_price, sum(l_extendedprice*(1-l_discount)) as " +
+			"sum_disc_price, sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, " +
+			"avg(l_quantity) as avg_qty, avg(l_extendedprice) as avg_price, avg(l_discount) " +
+			"as avg_disc, count(*) as count_order FROM lineitem WHERE l_shipdate <= ? " +
+			"GROUP BY l_returnflag, l_linestatus " +
+			"ORDER BY l_returnflag, l_linestatus;";
+		
+		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		preparedStatement.setDate(1, new Date(new java.util.Date().getTime()));
+		ResultSet result = preparedStatement.executeQuery();
+		
 	}
 
 	public void randomInserts() throws SQLException {

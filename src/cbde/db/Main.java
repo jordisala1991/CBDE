@@ -16,7 +16,8 @@ public class Main {
 		
 		if (Parameters.getDatabaseName().equals(Parameters.ORACLE)) {
 			OracleFirstScript ofc = new OracleFirstScript();
-			ofc.randomInserts();			
+			ofc.randomInserts();
+			ofc.executeQuerys();
 		}
 		else {
 			MongoNormalizedScript mongoScript = new MongoNormalizedScript();
