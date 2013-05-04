@@ -53,8 +53,11 @@ public class OracleFirstScript {
 	public void executeQuerys() throws SQLException {
 		
 		firstQuery();
+		secondQuery();
+		thirdQuery();
+		fourthQuery();
 	}
-	
+
 	public void firstQuery() throws SQLException {
 		
 		String query = 
@@ -79,6 +82,78 @@ public class OracleFirstScript {
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
+	}
+	
+	private void secondQuery() throws SQLException {
+		
+		String query = 
+			"SELECT s_acctbal, s_name, n_name, p_partkey, p_mfgr, s_address, s_phone, s_comment " +
+			"FROM part, supplier, partsupp, nation, region " +
+			"WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND p_size = ? " +
+			"AND p_type like ? AND s_nationkey = n_nationkey AND n_regionkey = r_regionkey " +
+			"AND r_name = ? AND ps_supplycost = (" +
+			"SELECT min(ps_supplycost) FROM partsupp, supplier, nation, region WHERE p_partkey = ps_partkey " +
+			"AND s_suppkey = ps_suppkey AND s_nationkey = n_nationkey " +
+			"AND n_regionkey = r_regionkey AND r_name = ?) " +
+			"ORDER BY s_acctbal desc, n_name, s_name, p_partkey";
+			
+		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		//TODO: this is not the correct
+		preparedStatement.setInt(1, randomGenerator.randomInt(4));
+		preparedStatement.setString(2, randomGenerator.randomString(4));
+		String region = randomGenerator.randomString(4);
+		preparedStatement.setString(3, region);
+		preparedStatement.setString(4, region);
+		
+		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
+		OracleHelper.showQueryResult(result);
+	}
+
+	private void thirdQuery() throws SQLException {
+		
+		String query = 
+			"SELECT l_orderkey, sum(l_extendedprice*(1-l_discount)) as revenue, o_orderdate, o_shippriority " +
+			"FROM customer, orders, lineitem " +
+			"WHERE c_mktsegment = ? AND c_custkey = o_custkey AND l_orderkey = o_orderkey " +
+			"AND o_orderdate < ? AND l_shipdate > ? " +
+			"GROUP BY l_orderkey, o_orderdate, o_shippriority " +
+			"ORDER BY revenue desc, o_orderdate";
+			
+		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		//TODO: this is not the correct
+		preparedStatement.setString(1, randomGenerator.randomString(32));
+		preparedStatement.setDate(2, new Date(new java.util.Date().getTime()));
+		preparedStatement.setDate(3, new Date(new java.util.Date().getTime())); 
+		
+		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
+		OracleHelper.showQueryResult(result);
+	}
+	
+	private void fourthQuery() throws SQLException {
+		
+		String query = 
+				"SELECT " +
+				"l_returnflag, l_linestatus, " +
+				"sum(l_quantity) as sum_qty, " +
+				"sum(l_extendedprice) as sum_base_price, " +
+				"sum(l_extendedprice*(1-l_discount)) as sum_disc_price, " +
+				"sum(l_extendedprice*(1-l_discount)*(1+l_tax)) as sum_charge, " +
+				"avg(l_quantity) as avg_qty, " +
+				"avg(l_extendedprice) as avg_price, " +
+				"avg(l_discount) as avg_disc, " +
+				"count(*) as count_order " +
+				"FROM lineitem " +
+				"WHERE l_shipdate <= ? " +
+				"GROUP BY l_returnflag, l_linestatus " +
+				"ORDER BY l_returnflag, l_linestatus";
+			
+			PreparedStatement preparedStatement = connection.prepareStatement(query);
+			//TODO: this is not the correct date, fetch from lineitem
+			preparedStatement.setDate(1, new Date(new java.util.Date().getTime())); 
+			
+			ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
+			OracleHelper.showQueryResult(result);
+		
 	}
 
 	public void randomInserts() throws SQLException {

@@ -25,6 +25,7 @@ public class OracleHelper {
 			}
 			System.out.println();
 		}
+		System.out.println();
 		
 		queryResult.close();
 	}
