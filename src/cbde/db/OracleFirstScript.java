@@ -1,17 +1,20 @@
 package cbde.db;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class OracleFirstScript {
 	
 	private Connection connection;
 	private RandomGenerator randomGenerator;
+	private SimpleDateFormat simpleDateFormat;
 
 	private static final String URL = "jdbc:oracle:thin:@oraclefib.fib.upc.es:1521:ORABD";
 	private static final String USERNAME = "daniel.llamazares";
@@ -37,6 +40,7 @@ public class OracleFirstScript {
 	
 		connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 		randomGenerator = new RandomGenerator();
+		simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	}
 	
 	public void cleanTables() throws SQLException {
@@ -51,15 +55,16 @@ public class OracleFirstScript {
 		OracleHelper.truncateTable(connection, LINE_ITEM_TABLE);
 	}
 	
-	public void executeQuerys() throws SQLException {
+	public void executeQuerys() throws SQLException, ParseException {
 		
-		firstQuery();
+		//firstQuery();
 		secondQuery();
-		thirdQuery();
+		//thirdQuery();
 		fourthQuery();
 	}
 
-	public void firstQuery() throws SQLException {
+	@SuppressWarnings("unchecked")
+	public void firstQuery() throws SQLException, ParseException {
 		
 		String query = 
 			"SELECT " +
@@ -78,13 +83,19 @@ public class OracleFirstScript {
 			"ORDER BY l_returnflag, l_linestatus";
 		
 		PreparedStatement preparedStatement = connection.prepareStatement(query);
-		//TODO: this is not the correct date, fetch from lineitem
-		preparedStatement.setDate(1, new Date(new java.util.Date().getTime())); 
 		
+		ArrayList<String> lineItemColumns = new ArrayList<String>();
+		lineItemColumns.add("l_shipdate");
+		ArrayList<ArrayList<String>> shipDates = OracleHelper.getColumns(connection, LINE_ITEM_TABLE, lineItemColumns);
+		ArrayList<String> shipDateArray = (ArrayList<String>) randomGenerator.getRandomItem(shipDates);
+		Date shipDate = simpleDateFormat.parse(shipDateArray.get(0));
+		
+		preparedStatement.setDate(1, OracleHelper.convertToSQLDate(shipDate));
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void secondQuery() throws SQLException {
 		
 		String query = 
@@ -99,18 +110,30 @@ public class OracleFirstScript {
 			"ORDER BY s_acctbal desc, n_name, s_name, p_partkey";
 			
 		PreparedStatement preparedStatement = connection.prepareStatement(query);
-		//TODO: this is not the correct
-		preparedStatement.setInt(1, randomGenerator.randomInt(4));
-		preparedStatement.setString(2, randomGenerator.randomString(4));
-		String region = randomGenerator.randomString(4);
-		preparedStatement.setString(3, region);
-		preparedStatement.setString(4, region);
+		
+		ArrayList<String> partColumns = new ArrayList<String>();
+		partColumns.add("p_size");
+		partColumns.add("p_type");
+		ArrayList<ArrayList<String>> sizesTypes = OracleHelper.getColumns(connection, PART_TABLE, partColumns);
+		ArrayList<String> sizeType = (ArrayList<String>) randomGenerator.getRandomItem(sizesTypes);
+		
+		preparedStatement.setString(1, sizeType.get(0));
+		preparedStatement.setString(2, "%" + sizeType.get(1));
+		
+		ArrayList<String> regionColumns = new ArrayList<String>();
+		regionColumns.add("r_name");
+		ArrayList<ArrayList<String>> regions = OracleHelper.getColumns(connection, REGION_TABLE, regionColumns);
+		ArrayList<String> region = (ArrayList<String>) randomGenerator.getRandomItem(regions);
+		
+		preparedStatement.setString(3, region.get(0));
+		preparedStatement.setString(4, region.get(0));
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
 	}
 
-	private void thirdQuery() throws SQLException {
+	@SuppressWarnings("unchecked")
+	private void thirdQuery() throws SQLException, ParseException {
 		
 		String query = 
 			"SELECT l_orderkey, sum(l_extendedprice*(1-l_discount)) as revenue, o_orderdate, o_shippriority " +
@@ -121,16 +144,36 @@ public class OracleFirstScript {
 			"ORDER BY revenue desc, o_orderdate";
 			
 		PreparedStatement preparedStatement = connection.prepareStatement(query);
-		//TODO: this is not the correct
-		preparedStatement.setString(1, randomGenerator.randomString(32));
-		preparedStatement.setDate(2, new Date(new java.util.Date().getTime()));
-		preparedStatement.setDate(3, new Date(new java.util.Date().getTime())); 
+		
+		ArrayList<String> customerColumns = new ArrayList<String>();
+		customerColumns.add("c_mktsegment");
+		ArrayList<ArrayList<String>> segments = OracleHelper.getColumns(connection, CUSTOMER_TABLE, customerColumns);
+		ArrayList<String> segment = (ArrayList<String>) randomGenerator.getRandomItem(segments);
+		
+		preparedStatement.setString(1, segment.get(0));
+		
+		ArrayList<String> ordersColumns = new ArrayList<String>();
+		ordersColumns.add("o_orderdate");
+		ArrayList<ArrayList<String>> ordersDates = OracleHelper.getColumns(connection, ORDERS_TABLE, ordersColumns);
+		ArrayList<String> ordersDateArray = (ArrayList<String>) randomGenerator.getRandomItem(ordersDates);
+		Date ordersDate = simpleDateFormat.parse(ordersDateArray.get(0));
+		
+		preparedStatement.setDate(2, OracleHelper.convertToSQLDate(ordersDate));
+		
+		ArrayList<String> lineItemColumns = new ArrayList<String>();
+		lineItemColumns.add("l_shipdate");
+		ArrayList<ArrayList<String>> shipDates = OracleHelper.getColumns(connection, LINE_ITEM_TABLE, lineItemColumns);
+		ArrayList<String> shipDateArray = (ArrayList<String>) randomGenerator.getRandomItem(shipDates);
+		Date shipDate = simpleDateFormat.parse(shipDateArray.get(0));
+		
+		preparedStatement.setDate(3, OracleHelper.convertToSQLDate(shipDate)); 
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
 	}
 	
-	private void fourthQuery() throws SQLException {
+	@SuppressWarnings("unchecked")
+	private void fourthQuery() throws SQLException, ParseException {
 		
 		String query =
 			"SELECT n_name, sum(l_extendedprice * (1 - l_discount)) as revenue " +
@@ -143,11 +186,22 @@ public class OracleFirstScript {
 			"ORDER BY revenue desc";
 		
 		PreparedStatement preparedStatement = connection.prepareStatement(query);
-		//TODO: this is not the correct date, fetch from lineitem
-		Date orderDate = new Date(new java.util.Date().getTime());
-		preparedStatement.setString(1, randomGenerator.randomString(32));
-		preparedStatement.setDate(2, orderDate);
-		preparedStatement.setDate(3, orderDate);
+		
+		ArrayList<String> regionColumns = new ArrayList<String>();
+		regionColumns.add("r_name");
+		ArrayList<ArrayList<String>> regions = OracleHelper.getColumns(connection, REGION_TABLE, regionColumns);
+		ArrayList<String> region = (ArrayList<String>) randomGenerator.getRandomItem(regions);
+		
+		preparedStatement.setString(1, region.get(0));
+		
+		ArrayList<String> ordersColumns = new ArrayList<String>();
+		ordersColumns.add("o_orderdate");
+		ArrayList<ArrayList<String>> ordersDates = OracleHelper.getColumns(connection, ORDERS_TABLE, ordersColumns);
+		ArrayList<String> ordersDateArray = (ArrayList<String>) randomGenerator.getRandomItem(ordersDates);
+		Date ordersDate = simpleDateFormat.parse(ordersDateArray.get(0));
+		
+		preparedStatement.setDate(2, OracleHelper.convertToSQLDate(ordersDate));
+		preparedStatement.setDate(3, OracleHelper.convertToSQLDate(ordersDate));
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
@@ -161,15 +215,6 @@ public class OracleFirstScript {
 		customerInserts();
 		partInserts();
 		ordersInserts();
-		
-		ArrayList<String> columns = new ArrayList<String>();
-		columns.add("o_orderdate");
-		ArrayList<ArrayList<String>> a = OracleHelper.getColumns(connection, "orders", columns);
-		for (int i = 0; i < a.get(0).size() && i < 20; ++i) {
-			System.out.println(a.get(0).get(i));
-		}
-		
-		
 		//partSuppInserts();
 		//lineItemInserts();
 	}
@@ -287,8 +332,7 @@ public class OracleFirstScript {
 			preparedStatement.setInt(2, randomGenerator.randomInt(1, customersInserted));
 			preparedStatement.setString(3, randomGenerator.randomString(32));
 			preparedStatement.setInt(4, randomGenerator.randomInt(7));
-			Date sqlDate = new Date(randomGenerator.randomDate().getTime());
-			preparedStatement.setDate(5, sqlDate);
+			preparedStatement.setDate(5, OracleHelper.convertToSQLDate(randomGenerator.randomDate()));
 			preparedStatement.setString(6, randomGenerator.randomString(8));
 			preparedStatement.setString(7, randomGenerator.randomString(32));
 			preparedStatement.setInt(8, randomGenerator.randomInt(4));
@@ -298,7 +342,5 @@ public class OracleFirstScript {
 		preparedStatement.executeBatch();
 		preparedStatement.close();
 	}
-	
-	
 	
 }

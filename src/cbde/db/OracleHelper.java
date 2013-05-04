@@ -1,6 +1,7 @@
 package cbde.db;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -12,32 +13,28 @@ public class OracleHelper {
 
 	private OracleHelper() { }
 
-	public static ArrayList<ArrayList<String>> getColumns(Connection connection, String tableName, ArrayList<String> columns) {
+	public static ArrayList<ArrayList<String>> getColumns(Connection connection, String tableName, ArrayList<String> columns) throws SQLException {
 		
 		String fields = "";
-		for (int i = 0; i < columns.size() - 1; i++) {
-			fields += columns.get(i) + ", ";
+		fields += columns.get(0);
+		for (int index = 1; index < columns.size(); index++) {
+			fields += ", " + columns.get(index);
 		}
-		if (columns.size() > 0) fields += columns.get(columns.size() - 1);
 		
-		ArrayList<ArrayList<String>> res = new ArrayList<ArrayList<String>>();
+		ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
+	
+		Statement statement = connection.createStatement();
+		ResultSet queryResult = statement.executeQuery("SELECT " + fields + " FROM " + tableName);
 		
-		try {
-			Statement statement = connection.createStatement();
-			ResultSet queryResult = statement.executeQuery("SELECT " + fields + " FROM " + tableName);
-			ResultSetMetaData metadata = queryResult.getMetaData();
-			
-			while (queryResult.next()) {
-				for (int index = 1; index <= metadata.getColumnCount(); index++) {
-					res.get(index - 1).add(queryResult.getString(index));
-				}
+		while (queryResult.next()) {
+			ArrayList<String> row = new ArrayList<String>();
+			for (int index = 1; index <= columns.size(); index++) {
+				row.add(queryResult.getString(index));
 			}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
+			rows.add(row);
 		}
 		
-		return res;
+		return rows;
 	}
 	
 	public static void showQueryResult(ResultSet queryResult) throws SQLException {
@@ -90,6 +87,11 @@ public class OracleHelper {
 		Statement statement = connection.createStatement();
 		statement.execute(query);
 		statement.close();
+	}
+	
+	public static Date convertToSQLDate(java.util.Date date) {
+		
+		return new Date(date.getTime());
 	}
 	
 }
