@@ -15,6 +15,7 @@ public class OracleFirstScript {
 	private Connection connection;
 	private RandomGenerator randomGenerator;
 	private SimpleDateFormat simpleDateFormat;
+	private double insertsTime;
 
 	private static final String URL = "jdbc:oracle:thin:@oraclefib.fib.upc.es:1521:ORABD";
 	private static final String USERNAME = "daniel.llamazares";
@@ -82,7 +83,7 @@ public class OracleFirstScript {
 			"GROUP BY l_returnflag, l_linestatus " +
 			"ORDER BY l_returnflag, l_linestatus";
 		
-		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		
 		ArrayList<String> lineItemColumns = new ArrayList<String>();
 		lineItemColumns.add("l_shipdate");
@@ -93,6 +94,8 @@ public class OracleFirstScript {
 		preparedStatement.setDate(1, OracleHelper.convertToSQLDate(shipDate));
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
+		
+		preparedStatement.close();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -109,7 +112,7 @@ public class OracleFirstScript {
 			"AND n_regionkey = r_regionkey AND r_name = ?) " +
 			"ORDER BY s_acctbal desc, n_name, s_name, p_partkey";
 			
-		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		
 		ArrayList<String> partColumns = new ArrayList<String>();
 		partColumns.add("p_size");
@@ -130,6 +133,8 @@ public class OracleFirstScript {
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
+		
+		preparedStatement.close();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -143,7 +148,7 @@ public class OracleFirstScript {
 			"GROUP BY l_orderkey, o_orderdate, o_shippriority " +
 			"ORDER BY revenue desc, o_orderdate";
 			
-		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		
 		ArrayList<String> customerColumns = new ArrayList<String>();
 		customerColumns.add("c_mktsegment");
@@ -170,6 +175,8 @@ public class OracleFirstScript {
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
+		
+		preparedStatement.close();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -185,7 +192,7 @@ public class OracleFirstScript {
 			"GROUP BY n_name " +
 			"ORDER BY revenue desc";
 		
-		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		PreparedStatement preparedStatement = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		
 		ArrayList<String> regionColumns = new ArrayList<String>();
 		regionColumns.add("r_name");
@@ -205,10 +212,13 @@ public class OracleFirstScript {
 		
 		ResultSet result = OracleHelper.executeQueryMeasuringTime(preparedStatement);
 		OracleHelper.showQueryResult(result);
+		
+		preparedStatement.close();
 	}
 
 	public void randomInserts() throws SQLException {
 		
+		insertsTime = 0;
 		regionInserts();
 		nationInserts();
 		supplierInserts();
@@ -217,6 +227,8 @@ public class OracleFirstScript {
 		ordersInserts();
 		partSuppInserts();
 		lineItemInserts();
+		System.out.println("Inserts time: " + insertsTime + " seconds");
+		System.out.println("------------------------------------");
 	}
 	
 	private void regionInserts() throws SQLException {
@@ -231,8 +243,7 @@ public class OracleFirstScript {
 				preparedStatement.setString(3, randomGenerator.randomString(80));
 				preparedStatement.addBatch();
 			}
-			preparedStatement.executeBatch();
-			preparedStatement.close();
+			insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 		}
 	}
 	
@@ -250,8 +261,7 @@ public class OracleFirstScript {
 				preparedStatement.setString(4, randomGenerator.randomString(80));
 				preparedStatement.addBatch();
 			}
-			preparedStatement.executeBatch();
-			preparedStatement.close();
+			insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 		}
 	}
 	
@@ -272,8 +282,7 @@ public class OracleFirstScript {
 			preparedStatement.setString(7, randomGenerator.randomString(53));
 			preparedStatement.addBatch();
 		}
-		preparedStatement.executeBatch();
-		preparedStatement.close();
+		insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 	}
 	
 	private void customerInserts() throws SQLException {
@@ -294,8 +303,7 @@ public class OracleFirstScript {
 			preparedStatement.setString(8, randomGenerator.randomString(60));
 			preparedStatement.addBatch();
 		}
-		preparedStatement.executeBatch();
-		preparedStatement.close();
+		insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 	}
 	
 	private void partInserts() throws SQLException {
@@ -316,8 +324,7 @@ public class OracleFirstScript {
 			preparedStatement.setString(9, randomGenerator.randomString(32));
 			preparedStatement.addBatch();
 		}
-		preparedStatement.executeBatch();
-		preparedStatement.close();
+		insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 	}
 	
 	private void ordersInserts() throws SQLException {
@@ -339,8 +346,7 @@ public class OracleFirstScript {
 			preparedStatement.setString(9, randomGenerator.randomString(40));
 			preparedStatement.addBatch();
 		}
-		preparedStatement.executeBatch();
-		preparedStatement.close();
+		insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 	}
 	
 	private void partSuppInserts() throws SQLException {
@@ -375,10 +381,10 @@ public class OracleFirstScript {
 			preparedStatement.setString(5, randomGenerator.randomString(100));
 			preparedStatement.addBatch();
 		}
-		preparedStatement.executeBatch();
-		preparedStatement.close();
+		insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void lineItemInserts() throws SQLException {
 		
 		String lineItemInsert = "INSERT INTO lineitem (L_OrderKey, L_PartKey, L_SuppKey, L_LineNumber, L_Quantity, L_ExtendedPrice, L_Discount, L_Tax, L_ReturnFlag, L_LineStatus, L_ShipDate, L_CommitDate, L_ReceiptDate, L_ShipInstruct, L_ShipMode, L_Comment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -388,12 +394,11 @@ public class OracleFirstScript {
 		ArrayList<String> columns = new ArrayList<String>();
 		columns.add("PS_PartKey");
 		columns.add("PS_SuppKey");
-		ArrayList<ArrayList<String>> currentInsertions = OracleHelper.getColumns(connection, PART_SUPP_TABLE, columns);
+		ArrayList<ArrayList<String>> partSupp = OracleHelper.getColumns(connection, PART_SUPP_TABLE, columns);
 
 		PreparedStatement preparedStatement = connection.prepareStatement(lineItemInsert);
 		for (int index = 1; index <= LINE_ITEM_NUM_INSERTS; index++) {
-			int randomPos = randomGenerator.randomInt(0, currentInsertions.size() - 1);
-			ArrayList<String> pair = currentInsertions.get(randomPos);
+			ArrayList<String> pair = (ArrayList<String>) randomGenerator.getRandomItem(partSupp);
 
 			preparedStatement.setInt(1, randomGenerator.randomInt(1, ordersInserted));
 			preparedStatement.setInt(2, Integer.parseInt(pair.get(0)));
@@ -413,8 +418,7 @@ public class OracleFirstScript {
 			preparedStatement.setString(16, randomGenerator.randomString(32));
 			preparedStatement.addBatch();
 		}
-		preparedStatement.executeBatch();
-		preparedStatement.close();
+		insertsTime += OracleHelper.executeInsertMeasuringTime(preparedStatement);
 	}
 	
 }

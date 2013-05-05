@@ -22,7 +22,7 @@ public class OracleHelper {
 		}
 		
 		ArrayList<ArrayList<String>> rows = new ArrayList<ArrayList<String>>();
-	
+		
 		Statement statement = connection.createStatement();
 		ResultSet queryResult = statement.executeQuery("SELECT " + fields + " FROM " + tableName);
 		
@@ -33,6 +33,8 @@ public class OracleHelper {
 			}
 			rows.add(row);
 		}
+		statement.close();
+		queryResult.close();
 		
 		return rows;
 	}
@@ -45,14 +47,17 @@ public class OracleHelper {
 		}
 		System.out.println();
 		
-		while (queryResult.next()) {
+		int rowCount = 0;
+		while (queryResult.next() && rowCount < 10) {
 			for (int index = 1; index <= metadata.getColumnCount(); index++) {
 				System.out.print(queryResult.getString(index) + "\t");
 			}
 			System.out.println();
+			++rowCount;
 		}
-		System.out.println();
-		
+		queryResult.last();
+		System.out.println("Total rows: " + queryResult.getRow());
+		System.out.println("------------------------------------");
 		queryResult.close();
 	}
 	
@@ -66,6 +71,17 @@ public class OracleHelper {
 		System.out.println("Query Time: " + seconds + " seconds");
 		
 		return result;
+	}
+	
+	public static double executeInsertMeasuringTime(PreparedStatement preparedStatement) throws SQLException {
+		
+		long startTime = System.nanoTime();
+		preparedStatement.executeBatch();
+		long endTime = System.nanoTime();
+		
+		preparedStatement.close();
+		
+		return (endTime - startTime) / 1.0E09;
 	}
 	
 	public static int insertedRowsNumber(Connection connection, String tableName) throws SQLException {
