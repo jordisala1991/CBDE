@@ -16,7 +16,6 @@ public class MongoDenormalizedScript {
 	private DB db;
 	
 	private static final String SUPPLIER_COLLECTION = "supplier";
-	private static final String CUSTOMER_COLLECTION = "customer";
 	private static final String PARTSUPP_COLLECTION = "partsupp";
 	private static final String LINEITEM_COLLECTION = "lineitem";
 	private static final int REGION_NUM_INSERTS = 5;
@@ -38,7 +37,6 @@ public class MongoDenormalizedScript {
 	public void deleteAllCollections() {
 		
 		db.getCollection(SUPPLIER_COLLECTION).drop();
-		db.getCollection(CUSTOMER_COLLECTION).drop();
 		db.getCollection(PARTSUPP_COLLECTION).drop();
 		db.getCollection(LINEITEM_COLLECTION).drop();
 	}
@@ -47,76 +45,92 @@ public class MongoDenormalizedScript {
 		
 		ArrayList<BasicDBObject> nations = generateNations();
 		supplierInserts(nations);
-		customerInserts(nations);
+		ArrayList<BasicDBObject> customers = generateCustomers(nations);
 		partSuppInserts();
-		lineItemInserts();
+		lineItemInserts(customers);		
 	}
 
-	private void lineItemInserts() {
+	private void lineItemInserts(ArrayList<BasicDBObject> customers) {
+
+		DBCollection lineItemCollection = db.getCollection(LINEITEM_COLLECTION);
+		
+		ArrayList<BasicDBObject> orders = generateOrders(customers);
+		
+		for(int index = 1; index <= LINE_ITEM_NUM_INSERTS; index++) {
+			lineItemCollection.save(lineItem(index, randomGenerator.getRandomItem(orders)));
+		}
+		
+	}
+
+	private DBObject lineItem(int index, Object randomOrder) {
+		
+		BasicDBObject lineItem = new BasicDBObject();
+		lineItem.append("l_ok", randomOrder);
+		lineItem.append("l_pk", randomGenerator.randomInt(1, PART_NUM_INSERTS));
+		lineItem.append("l_sk", randomGenerator.randomInt(1, SUPPLIER_NUM_INSERTS));
+		lineItem.append("l_ln", index);
+		lineItem.append("l_q", randomGenerator.randomInt(4));
+		lineItem.append("l_ep", randomGenerator.randomInt(7));
+		lineItem.append("l_d", randomGenerator.randomInt(7));
+		lineItem.append("l_t", randomGenerator.randomInt(7));
+		lineItem.append("l_rf", randomGenerator.randomString(32));
+		lineItem.append("l_ls", randomGenerator.randomString(32));
+		lineItem.append("l_sd", randomGenerator.randomDate());
+		lineItem.append("l_cd", randomGenerator.randomDate());
+		lineItem.append("l_rd", randomGenerator.randomDate());
+		lineItem.append("l_ss", randomGenerator.randomString(32));
+		lineItem.append("l_sm", randomGenerator.randomString(32));
+		lineItem.append("l_c", randomGenerator.randomString(32));
+		return lineItem;
+		
+	}
+
+	private ArrayList<BasicDBObject> generateOrders(ArrayList<BasicDBObject> customers) {
+	
+		ArrayList<BasicDBObject> orders = new ArrayList<BasicDBObject>();
+		
+		for(int index = 1; index <= ORDERS_NUM_INSERTS; index++) {
+			orders.add(order(index, randomGenerator.getRandomItem(customers)));
+		}
+		
+		return orders;
+		
+	}
+
+	private BasicDBObject order(int index, Object randomOrder) {
+		
+		BasicDBObject order = new BasicDBObject();
+		order.append("o_ok", index);
+		order.append("o_ck", randomOrder);
+		order.append("o_os", randomGenerator.randomString(32));
+		order.append("o_tp", randomGenerator.randomInt(7));
+		order.append("o_od", randomGenerator.randomDate());
+		order.append("o_op", randomGenerator.randomString(8));
+		order.append("o_cl", randomGenerator.randomString(32));
+		order.append("o_sp", randomGenerator.randomInt(4));
+		order.append("o_co", randomGenerator.randomString(40));
+		
+		return order;
+	}
+
+	private void partSuppInserts() {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void partSuppInserts() {
+	private ArrayList<BasicDBObject> generateCustomers(ArrayList<BasicDBObject> nations) {
 
-		DBCollection partSuppCollection = db.getCollection(PARTSUPP_COLLECTION);
-		ArrayList<BasicDBObject> parts = generateParts();
-		
-		for(int index = 1; index <= PART_SUPP_NUM_INSERTS; index++) {
-			partSuppCollection.save(partSupp(index, randomGenerator.getRandomItem(parts)));
-		}	
-	}
-
-	private DBObject partSupp(int index, Object randomPart) {
-		
-		BasicDBObject partSupp = new BasicDBObject();
-		partSupp.append("ps_id", index);
-		partSupp.append("ps_pk", randomPart);
-		partSupp.append("ps_sk", randomGenerator.randomInt(1, SUPPLIER_NUM_INSERTS));
-		partSupp.append("ps_a", randomGenerator.randomInt(4));
-		partSupp.append("ps_sc", randomGenerator.randomInt(7));
-		partSupp.append("ps_c", randomGenerator.randomString(100));
-		
-		return partSupp;
-	}
-
-	private ArrayList<BasicDBObject> generateParts() {
-		ArrayList<BasicDBObject> parts = new ArrayList<BasicDBObject>();
-		
-		for(int index = 1; index <= PART_NUM_INSERTS; index++) {
-			parts.add(part(index));
-		}
-		
-		return parts;
-	}
-
-	private BasicDBObject part(int index) {
-		
-		BasicDBObject part = new BasicDBObject();
-		part.append("p_pk", index);
-		part.append("p_n", randomGenerator.randomString(32));
-		part.append("p_mf", randomGenerator.randomString(32));
-		part.append("p_b", randomGenerator.randomString(32));
-		part.append("p_t", randomGenerator.randomString(32));
-		part.append("p_s", randomGenerator.randomInt(4));
-		part.append("p_con", randomGenerator.randomString(32));
-		part.append("p_r", randomGenerator.randomInt(7));
-		part.append("p_com", randomGenerator.randomString(32));
-		
-		return part;
-	}
-
-	private void customerInserts(ArrayList<BasicDBObject> nations) {
-
-		DBCollection customerCollection = db.getCollection(CUSTOMER_COLLECTION);
+		ArrayList<BasicDBObject> customers = new ArrayList<BasicDBObject>();
 		
 		for(int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
-			customerCollection.save(customer(index, randomGenerator.getRandomItem(nations)));
+			customers.add(customer(index, randomGenerator.getRandomItem(nations)));
 		}
+		
+		return customers;
 		
 	}
 	
-	private DBObject customer(int index, Object randomNation) {
+	private BasicDBObject customer(int index, Object randomNation) {
 		
 		BasicDBObject customer = new BasicDBObject();
 		customer.append("c_ck", index);
