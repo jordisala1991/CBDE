@@ -31,6 +31,7 @@ public class Main {
 			}
 			else {
 				MongoDenormalizedScript mongoScript = new MongoDenormalizedScript();
+				mongoScript.deleteAllCollections();
 				mongoScript.randomInserts();
 			}
 		}

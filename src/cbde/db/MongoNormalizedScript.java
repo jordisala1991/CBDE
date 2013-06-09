@@ -1,13 +1,11 @@
 package cbde.db;
 
 import java.net.UnknownHostException;
-import java.sql.SQLException;
-import java.text.ParseException;
-
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 
@@ -88,8 +86,9 @@ public class MongoNormalizedScript {
 	}
 
 	private void firstQuery() {
-		// TODO Auto-generated method stub
+		BasicDBObject query = new BasicDBObject("table", "lineitem");
 		
+		DBCursor result = normalizedCollection.find(query);
 	}
 
 	private DBObject findOneBy(BasicDBObject query) {
