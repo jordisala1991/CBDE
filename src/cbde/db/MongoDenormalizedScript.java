@@ -53,8 +53,29 @@ public class MongoDenormalizedScript {
 	}
 
 	private void customerInserts(ArrayList<BasicDBObject> nations) {
-		// TODO Auto-generated method stub
+
+		DBCollection customerCollection = db.getCollection(CUSTOMER_COLLECTION);
 		
+		for(int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
+			customerCollection.save(customer(index, randomGenerator.getRandomItem(nations)));
+		}
+		
+	}
+	
+	private DBObject customer(int index, Object randomNation) {
+		
+		BasicDBObject customer = new BasicDBObject();
+		customer.append("c_ck", index);
+		customer.append("c_n", randomGenerator.randomString(32));
+		customer.append("c_ad", randomGenerator.randomString(32));
+		customer.append("c_nk", randomNation);
+		customer.append("c_p", randomGenerator.randomString(32));
+		customer.append("c_ac", randomGenerator.randomInt(7));
+		customer.append("c_m", randomGenerator.randomString(32));
+		customer.append("c_c", randomGenerator.randomString(60));
+		
+		return customer;
+
 	}
 
 	private void supplierInserts(ArrayList<BasicDBObject> nations) {
