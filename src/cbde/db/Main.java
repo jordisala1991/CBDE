@@ -26,7 +26,8 @@ public class Main {
 			if (Parameters.getMethod() == Parameters.FIRST_METHOD) {
 				MongoNormalizedScript mongoScript = new MongoNormalizedScript();
 				mongoScript.deleteCollection();
-				mongoScript.randomInserts();				
+				mongoScript.randomInserts();
+				mongoScript.executeQuerys();
 			}
 			else {
 				MongoDenormalizedScript mongoScript = new MongoDenormalizedScript();

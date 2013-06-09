@@ -1,6 +1,9 @@
 package cbde.db;
 
 import java.net.UnknownHostException;
+import java.sql.SQLException;
+import java.text.ParseException;
+
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -59,6 +62,34 @@ public class MongoNormalizedScript {
 		ordersInserts();
 		partSuppInserts();
 		lineItemInserts();
+	}
+	
+	public void executeQuerys() {
+		
+		firstQuery();
+		secondQuery();
+		thirdQuery();
+		fourthQuery();
+	}
+
+	private void fourthQuery() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void thirdQuery() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void secondQuery() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void firstQuery() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private DBObject findOneBy(BasicDBObject query) {
