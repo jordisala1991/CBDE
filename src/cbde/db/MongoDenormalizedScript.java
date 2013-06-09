@@ -17,6 +17,8 @@ public class MongoDenormalizedScript {
 	
 	private static final String SUPPLIER_COLLECTION = "supplier";
 	private static final String CUSTOMER_COLLECTION = "customer";
+	private static final String PARTSUPP_COLLECTION = "partsupp";
+	private static final String LINEITEM_COLLECTION = "lineitem";
 	private static final int REGION_NUM_INSERTS = 5;
 	private static final int NATION_NUM_INSERTS = 25;
 	private static final int SUPPLIER_NUM_INSERTS = 33;
@@ -31,6 +33,14 @@ public class MongoDenormalizedScript {
 		mongo = new Mongo("localhost");
 		db = mongo.getDB("cbde");
 		randomGenerator = new RandomGenerator();
+	}
+	
+	public void deleteAllCollections() {
+		
+		db.getCollection(SUPPLIER_COLLECTION).drop();
+		db.getCollection(CUSTOMER_COLLECTION).drop();
+		db.getCollection(PARTSUPP_COLLECTION).drop();
+		db.getCollection(LINEITEM_COLLECTION).drop();
 	}
 
 	public void randomInserts() {
