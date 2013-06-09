@@ -58,8 +58,52 @@ public class MongoDenormalizedScript {
 	}
 
 	private void partSuppInserts() {
-		// TODO Auto-generated method stub
+
+		DBCollection partSuppCollection = db.getCollection(PARTSUPP_COLLECTION);
+		ArrayList<BasicDBObject> parts = generateParts();
 		
+		for(int index = 1; index <= PART_SUPP_NUM_INSERTS; index++) {
+			partSuppCollection.save(partSupp(index, randomGenerator.getRandomItem(parts)));
+		}	
+	}
+
+	private DBObject partSupp(int index, Object randomPart) {
+		
+		BasicDBObject partSupp = new BasicDBObject();
+		partSupp.append("ps_id", index);
+		partSupp.append("ps_pk", randomPart);
+		partSupp.append("ps_sk", randomGenerator.randomInt(1, SUPPLIER_NUM_INSERTS));
+		partSupp.append("ps_a", randomGenerator.randomInt(4));
+		partSupp.append("ps_sc", randomGenerator.randomInt(7));
+		partSupp.append("ps_c", randomGenerator.randomString(100));
+		
+		return partSupp;
+	}
+
+	private ArrayList<BasicDBObject> generateParts() {
+		ArrayList<BasicDBObject> parts = new ArrayList<BasicDBObject>();
+		
+		for(int index = 1; index <= PART_NUM_INSERTS; index++) {
+			parts.add(part(index));
+		}
+		
+		return parts;
+	}
+
+	private BasicDBObject part(int index) {
+		
+		BasicDBObject part = new BasicDBObject();
+		part.append("p_pk", index);
+		part.append("p_n", randomGenerator.randomString(32));
+		part.append("p_mf", randomGenerator.randomString(32));
+		part.append("p_b", randomGenerator.randomString(32));
+		part.append("p_t", randomGenerator.randomString(32));
+		part.append("p_s", randomGenerator.randomInt(4));
+		part.append("p_con", randomGenerator.randomString(32));
+		part.append("p_r", randomGenerator.randomInt(7));
+		part.append("p_com", randomGenerator.randomString(32));
+		
+		return part;
 	}
 
 	private void customerInserts(ArrayList<BasicDBObject> nations) {
