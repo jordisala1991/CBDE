@@ -1,2 +1,2 @@
-database: oracle
+database: mongo
 method: 1

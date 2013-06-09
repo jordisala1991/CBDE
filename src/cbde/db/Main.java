@@ -19,13 +19,19 @@ public class Main {
 			ofc.cleanTables();
 			ofc.randomInserts();
 			ofc.executeQuerys();
-			//ofc.randomInserts();
-			//ofc.executeQuerys();
+			ofc.randomInserts();
+			ofc.executeQuerys();
 		}
 		else {
-			MongoNormalizedScript mongoScript = new MongoNormalizedScript();
-			mongoScript.deleteCollection();
-			mongoScript.randomInserts();			
+			if (Parameters.getMethod() == Parameters.FIRST_METHOD) {
+				MongoNormalizedScript mongoScript = new MongoNormalizedScript();
+				mongoScript.deleteCollection();
+				mongoScript.randomInserts();				
+			}
+			else {
+				MongoDenormalizedScript mongoScript = new MongoDenormalizedScript();
+				mongoScript.randomInserts();
+			}
 		}
 	}
  	
