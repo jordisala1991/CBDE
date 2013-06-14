@@ -4,11 +4,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Map;
 
-import oracle.OracleFirstScript;
 
 
 import cbde.db.mongo.MongoDenormalizedScript;
 import cbde.db.mongo.MongoNormalizedScript;
+import cbde.db.oracle.OracleFirstScript;
 
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
