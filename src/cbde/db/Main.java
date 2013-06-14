@@ -3,6 +3,13 @@ package cbde.db;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Map;
+
+import oracle.OracleFirstScript;
+
+
+import cbde.db.mongo.MongoDenormalizedScript;
+import cbde.db.mongo.MongoNormalizedScript;
+
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 
@@ -21,19 +28,26 @@ public class Main {
 			ofc.executeQuerys();
 			ofc.randomInserts();
 			ofc.executeQuerys();
+			ofc.cleanTables();
 		}
-		else {
+		else if (Parameters.getDatabaseName().equals(Parameters.MONGODB)) {
 			if (Parameters.getMethod() == Parameters.FIRST_METHOD) {
 				MongoNormalizedScript mongoScript = new MongoNormalizedScript();
 				mongoScript.deleteCollection();
 				mongoScript.randomInserts();
-				mongoScript.executeQuerys();
+				mongoScript.randomInserts();
+				mongoScript.deleteCollection();
 			}
 			else {
 				MongoDenormalizedScript mongoScript = new MongoDenormalizedScript();
 				mongoScript.deleteAllCollections();
-				mongoScript.randomInserts();
+				mongoScript.randomInserts(0);
+				mongoScript.randomInserts(1);
+				mongoScript.deleteAllCollections();
 			}
+		}
+		else {
+			
 		}
 	}
  	

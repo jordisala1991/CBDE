@@ -1,8 +1,9 @@
-package cbde.db;
+package cbde.db.mongo;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-
+import cbde.db.RandomGenerator;
+import cbde.db.mongo.MongoHelper;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -14,6 +15,9 @@ public class MongoDenormalizedScript {
 	private RandomGenerator randomGenerator;
 	private Mongo mongo;
 	private DB db;
+	private double insertsTime;
+	private int insertedTimes;
+	private ArrayList<BasicDBObject> nations;
 	
 	private static final String SUPPLIER_COLLECTION = "supplier";
 	private static final String PARTSUPP_COLLECTION = "partsupp";
@@ -41,13 +45,19 @@ public class MongoDenormalizedScript {
 		db.getCollection(LINEITEM_COLLECTION).drop();
 	}
 
-	public void randomInserts() {
+	public void randomInserts(int insertedTimes) {
 		
-		ArrayList<BasicDBObject> nations = generateNations();
+		this.insertedTimes = insertedTimes;
+		insertsTime = 0;
+		if (insertedTimes == 0) {
+			nations = generateNations();	
+		}
 		supplierInserts(nations);
 		ArrayList<BasicDBObject> customers = generateCustomers(nations);
 		partSuppInserts();
-		lineItemInserts(customers);		
+		lineItemInserts(customers);
+		System.out.println("Inserts time: " + insertsTime + " seconds");
+		System.out.println("------------------------------------");
 	}
 
 	private void lineItemInserts(ArrayList<BasicDBObject> customers) {
@@ -57,7 +67,8 @@ public class MongoDenormalizedScript {
 		ArrayList<BasicDBObject> orders = generateOrders(customers);
 		
 		for(int index = 1; index <= LINE_ITEM_NUM_INSERTS; index++) {
-			lineItemCollection.save(lineItem(index, randomGenerator.getRandomItem(orders)));
+			DBObject lineItem = lineItem(index + insertedTimes*LINE_ITEM_NUM_INSERTS, randomGenerator.getRandomItem(orders));
+			insertsTime += MongoHelper.executeInsertMeasuringTime(lineItemCollection, lineItem);
 		}
 		
 	}
@@ -90,7 +101,7 @@ public class MongoDenormalizedScript {
 		ArrayList<BasicDBObject> orders = new ArrayList<BasicDBObject>();
 		
 		for(int index = 1; index <= ORDERS_NUM_INSERTS; index++) {
-			orders.add(order(index, randomGenerator.getRandomItem(customers)));
+			orders.add(order(index + insertedTimes*ORDERS_NUM_INSERTS, randomGenerator.getRandomItem(customers)));
 		}
 		
 		return orders;
@@ -119,7 +130,8 @@ public class MongoDenormalizedScript {
         ArrayList<BasicDBObject> parts = generateParts();
         
         for(int index = 1; index <= PART_SUPP_NUM_INSERTS; index++) {
-            partSuppCollection.save(partSupp(index, randomGenerator.getRandomItem(parts)));
+        	DBObject partSupp = partSupp(index + insertedTimes*PART_NUM_INSERTS, randomGenerator.getRandomItem(parts));
+        	MongoHelper.executeInsertMeasuringTime(partSuppCollection, partSupp);
         }   
     }
 
@@ -140,7 +152,7 @@ public class MongoDenormalizedScript {
         ArrayList<BasicDBObject> parts = new ArrayList<BasicDBObject>();
         
         for(int index = 1; index <= PART_NUM_INSERTS; index++) {
-            parts.add(part(index));
+            parts.add(part(index + insertedTimes*PART_NUM_INSERTS));
         }
         
         return parts;
@@ -167,7 +179,7 @@ public class MongoDenormalizedScript {
 		ArrayList<BasicDBObject> customers = new ArrayList<BasicDBObject>();
 		
 		for(int index = 1; index <= CUSTOMER_NUM_INSERTS; index++) {
-			customers.add(customer(index, randomGenerator.getRandomItem(nations)));
+			customers.add(customer(index + insertedTimes*CUSTOMER_NUM_INSERTS, randomGenerator.getRandomItem(nations)));
 		}
 		
 		return customers;
@@ -195,7 +207,8 @@ public class MongoDenormalizedScript {
 		DBCollection supplierCollection = db.getCollection(SUPPLIER_COLLECTION);
 		
 		for(int index = 1; index <= SUPPLIER_NUM_INSERTS; index++) {
-			supplierCollection.save(supplier(index, randomGenerator.getRandomItem(nations)));
+			DBObject supplier = supplier(index + insertedTimes*SUPPLIER_NUM_INSERTS, randomGenerator.getRandomItem(nations));
+			MongoHelper.executeInsertMeasuringTime(supplierCollection, supplier);
 		}
 		
 	}
@@ -220,7 +233,7 @@ public class MongoDenormalizedScript {
 		ArrayList<BasicDBObject> regions = generateRegions();
 		
 		for(int index = 1; index <= NATION_NUM_INSERTS; index++) {
-			nations.add(nation(index, randomGenerator.getRandomItem(regions)));
+			nations.add(nation(index + insertedTimes*NATION_NUM_INSERTS, randomGenerator.getRandomItem(regions)));
 		}
 		
 		return nations;
@@ -242,7 +255,7 @@ public class MongoDenormalizedScript {
 		ArrayList<BasicDBObject> regions = new ArrayList<BasicDBObject>();
 		
 		for(int index = 1; index <= REGION_NUM_INSERTS; index++) {
-			regions.add(region(index));
+			regions.add(region(index + insertedTimes*REGION_NUM_INSERTS));
 		}
 		
 		return regions;

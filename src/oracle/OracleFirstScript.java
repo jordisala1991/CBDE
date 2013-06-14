@@ -1,4 +1,4 @@
-package cbde.db;
+package oracle;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,6 +9,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import cbde.db.RandomGenerator;
 
 public class OracleFirstScript {
 	

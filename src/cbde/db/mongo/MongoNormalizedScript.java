@@ -1,11 +1,13 @@
-package cbde.db;
+package cbde.db.mongo;
 
 import java.net.UnknownHostException;
+
+import cbde.db.RandomGenerator;
+
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 
@@ -15,6 +17,7 @@ public class MongoNormalizedScript {
 	private DB db;
 	private DBCollection normalizedCollection;
 	private RandomGenerator randomGenerator;
+	private double insertsTime = 0;
 	
 	private static final String NORMALIZED_COLLECTION = "norm_collection";
 	private static final String TABLE = "table";
@@ -52,6 +55,7 @@ public class MongoNormalizedScript {
 	
 	public void randomInserts() {
 		
+		insertsTime = 0;
 		regionInserts();
 		nationInserts();
 		supplierInserts();
@@ -60,35 +64,8 @@ public class MongoNormalizedScript {
 		ordersInserts();
 		partSuppInserts();
 		lineItemInserts();
-	}
-	
-	public void executeQuerys() {
-		
-		firstQuery();
-		secondQuery();
-		thirdQuery();
-		fourthQuery();
-	}
-
-	private void fourthQuery() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void thirdQuery() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void secondQuery() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void firstQuery() {
-		BasicDBObject query = new BasicDBObject("table", "lineitem");
-		
-		DBCursor result = normalizedCollection.find(query);
+		System.out.println("Inserts time: " + insertsTime + " seconds");
+		System.out.println("------------------------------------");
 	}
 
 	private DBObject findOneBy(BasicDBObject query) {
@@ -138,7 +115,7 @@ public class MongoNormalizedScript {
 			rows.add(part(insertedRows + index));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 	
 	private DBObject part(int index) {
@@ -170,7 +147,7 @@ public class MongoNormalizedScript {
 			rows.add(customer(insertedRows + index, nationsInserted));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 	
 	private DBObject customer(int index, int nationsInserted) {
@@ -201,7 +178,7 @@ public class MongoNormalizedScript {
 			rows.add(supplier(insertedRows + index, nationsInserted));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 
 	
@@ -232,7 +209,7 @@ public class MongoNormalizedScript {
 			rows.add(nation(index, regionsInserted));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 	
 	private DBObject nation(int index, int regionsInserted) {
@@ -258,7 +235,7 @@ public class MongoNormalizedScript {
 			rows.add(region(index));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 	
 	private DBObject region(int index) {
@@ -284,7 +261,7 @@ public class MongoNormalizedScript {
 			rows.add(orders(insertedRows + index, customersInserted));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 	
 	private DBObject orders(int index, int customersInserted) {
@@ -327,7 +304,7 @@ public class MongoNormalizedScript {
 			rows.add(partSupp(randomPK));
 		}
 
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 	
 	private DBObject partSupp(BasicDBObject primaryKey) {
@@ -361,7 +338,7 @@ public class MongoNormalizedScript {
 			rows.add(lineItem(index + insertedRows, ordersInserted, partSupp));
 		}
 		
-		normalizedCollection.save(document);
+		insertsTime += MongoHelper.executeInsertMeasuringTime(normalizedCollection, document);
 	}
 
 	private DBObject lineItem(int index, int ordersInserted, BasicDBObject partSupp) {

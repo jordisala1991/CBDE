@@ -1,4 +1,4 @@
-package cbde.db;
+package oracle;
 
 import java.sql.Connection;
 import java.sql.Date;
