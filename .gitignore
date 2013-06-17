@@ -7,3 +7,6 @@
 # Eclipse #
 .classpath
 .settings
+
+# Neo4j #
+neo4j/
