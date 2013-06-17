@@ -3,13 +3,10 @@ package cbde.db;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Map;
-
-
-
 import cbde.db.mongo.MongoDenormalizedScript;
 import cbde.db.mongo.MongoNormalizedScript;
+import cbde.db.neo4j.Neo4jScript;
 import cbde.db.oracle.OracleFirstScript;
-
 import com.esotericsoftware.yamlbeans.YamlException;
 import com.esotericsoftware.yamlbeans.YamlReader;
 
@@ -46,8 +43,10 @@ public class Main {
 				mongoScript.deleteAllCollections();
 			}
 		}
-		else {
-			
+		else if (Parameters.getDatabaseName().equals(Parameters.NEO4J)){
+			Neo4jScript neo4j = new Neo4jScript();
+			neo4j.randomInserts();
+			neo4j.shutdownDatabase();
 		}
 	}
  	

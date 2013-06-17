@@ -12,6 +12,7 @@ public class Parameters {
 	
 	public static final String ORACLE = "oracle";
 	public static final String MONGODB = "mongo";
+	public static final String NEO4J = "neo4j";
 	public static final int FIRST_METHOD = 1;
 
 	private Parameters() { }

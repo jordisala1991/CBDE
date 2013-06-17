@@ -1,2 +1,2 @@
-database: mongo
+database: neo4j
 method: 1
