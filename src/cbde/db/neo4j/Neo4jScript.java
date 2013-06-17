@@ -10,29 +10,15 @@ import cbde.db.RandomGenerator;
 
 public class Neo4jScript {
 	
-	private static final String DB_PATH = "neo4jdb";
-	
 	private GraphDatabaseService graphDb;
-	
 	private RandomGenerator randomGenerator;
 	private double insertsTime;
-	
 	private ArrayList<Node> regions;
 	private ArrayList<Node> nations;
-	private ArrayList<Node> customer;
-	private ArrayList<Node> orders;
-	private ArrayList<Node> supplier;
-	private ArrayList<Node> part;
-	private ArrayList<Node> partsupp;
 	
 	private static final int REGION_NUM_INSERTS = 5;
 	private static final int NATION_NUM_INSERTS = 25;
-	private static final int SUPPLIER_NUM_INSERTS = 33;
-	private static final int CUSTOMER_NUM_INSERTS = 500;
-	private static final int PART_NUM_INSERTS = 666;
-	private static final int ORDERS_NUM_INSERTS = 5000;
-	private static final int PART_SUPP_NUM_INSERTS = 2666;
-	private static final int LINE_ITEM_NUM_INSERTS = 20000;
+	private static final String DB_PATH = "neo4jdb";
 	
 	public Neo4jScript() {
 		
